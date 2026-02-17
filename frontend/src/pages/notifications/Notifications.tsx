@@ -1,9 +1,19 @@
-import { useGetNotificationsQuery, useMarkNotificationReadMutation } from "../../services/notificationApi";
+import { useEffect } from "react";
+import { useGetNotificationsQuery, useMarkNotificationReadMutation, useMarkAllAsReadMutation } from "../../services/notificationApi";
 import Card from "../../components/Card";
+import { Icons } from "../../components/IconRegistry";
 
 const NotificationsPage = () => {
     const { data: notifications, isLoading } = useGetNotificationsQuery();
     const [markRead] = useMarkNotificationReadMutation();
+    const [markAllAsRead] = useMarkAllAsReadMutation();
+
+    useEffect(() => {
+        const unreadNotifications = notifications?.filter(n => !n.read);
+        if (unreadNotifications && unreadNotifications.length > 0) {
+            markAllAsRead();
+        }
+    }, [notifications, markAllAsRead]);
 
     const handleMarkRead = async (id: string) => {
         try {
@@ -13,47 +23,85 @@ const NotificationsPage = () => {
         }
     };
 
+    const getTypeColor = (type: string) => {
+        switch (type?.toUpperCase()) {
+            case 'ALERT': return 'bg-red-500 shadow-red-200';
+            case 'SUCCESS': return 'bg-emerald-500 shadow-emerald-200';
+            case 'INFO': return 'bg-blue-500 shadow-blue-200';
+            default: return 'bg-slate-500 shadow-slate-200';
+        }
+    };
+
+    const getTypeIcon = (type: string) => {
+        switch (type?.toUpperCase()) {
+            case 'ALERT': return <Icons.AlertCircle className="w-5 h-5" />;
+            case 'SUCCESS': return <Icons.CheckCircle className="w-5 h-5" />;
+            default: return <Icons.Info className="w-5 h-5" />;
+        }
+    };
+
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">System Alerts</h1>
-                <p className="text-slate-500 font-medium">Real-time notifications and operational updates</p>
+        <div className="space-y-12 max-w-5xl mx-auto pb-20">
+            <div className="flex justify-between items-end px-2">
+                <div>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-2">Operational Alerts</h1>
+                    <p className="text-slate-500 font-medium">Real-time system telemetry and dispatch updates</p>
+                </div>
+                <div className="flex gap-4">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl">
+                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Monitoring</span>
+                    </div>
+                </div>
             </div>
 
-            <div className="max-w-4xl space-y-4">
+            <div className="space-y-6">
                 {isLoading ? (
-                    [1, 2, 3].map(i => <div key={i} className="h-20 rounded-2xl bg-white shadow-sm animate-pulse" />)
+                    [1, 2, 3, 4].map(i => <div key={i} className="h-28 rounded-3xl bg-white shadow-sm animate-pulse glass" />)
                 ) : notifications?.length === 0 ? (
-                    <Card className="p-20 text-center flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 00-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    <Card className="p-24 text-center flex flex-col items-center justify-center border-none shadow-2xl shadow-slate-200/50 glass">
+                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 shadow-inner">
+                            <Icons.BellOff className="w-10 h-10 text-slate-200" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">No Active Notifications</h3>
+                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Systems Nominal</h3>
+                        <p className="text-xs text-slate-400 font-medium">No active alerts requiring attention</p>
                     </Card>
                 ) : (
                     notifications?.map((notif) => (
                         <Card
                             key={notif._id}
-                            className={`p-6 flex items-center justify-between transition-all group ${notif.read ? 'opacity-60 grayscale' : 'border-l-4 border-l-primary'}`}
+                            className={`group relative p-8 border-none transition-all duration-500 glass hover:-translate-y-1 hover:shadow-3xl ${notif.read ? 'opacity-50 grayscale hover:grayscale-0' : 'shadow-2xl shadow-slate-200/50'}`}
                         >
-                            <div className="flex gap-4 items-center">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${notif.read ? 'bg-slate-100 text-slate-400' : 'bg-primary/10 text-primary'}`}>
-                                    <span className="text-xs font-black uppercase">{notif.type[0]}</span>
+                            <div className="flex gap-8 items-start">
+                                <div className={`mt-1 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-2xl transition-all duration-500 group-hover:rotate-6 ${getTypeColor(notif.type)}`}>
+                                    {getTypeIcon(notif.type)}
                                 </div>
-                                <div>
-                                    <p className="text-sm font-bold text-slate-900">{notif.message}</p>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                                        {new Date(notif.createdAt).toLocaleString()}
-                                    </p>
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-1">
+                                            <h4 className="text-xl font-black text-slate-900 tracking-tight">{notif.title}</h4>
+                                            <p className="text-sm text-slate-600 font-medium leading-relaxed max-w-2xl">{notif.message}</p>
+                                        </div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap pt-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+                                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </p>
+                                    </div>
+
+                                    {!notif.read && (
+                                        <div className="pt-4 flex items-center gap-6">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                <span className="text-[10px] font-black text-primary uppercase tracking-widest underline decoration-2 underline-offset-4 cursor-pointer hover:text-slate-900 transition-colors" onClick={() => handleMarkRead(notif._id)}>
+                                                    Dismiss Alert
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+
                             {!notif.read && (
-                                <button
-                                    onClick={() => handleMarkRead(notif._id)}
-                                    className="px-4 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                                >
-                                    Clear
-                                </button>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
                             )}
                         </Card>
                     ))

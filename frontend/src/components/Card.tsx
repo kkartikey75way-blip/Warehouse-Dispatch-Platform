@@ -9,7 +9,7 @@ const Card = ({ children, className = "", title }: CardProps) => {
         <div className={`premium-card ${className}`}>
             {title && (
                 <div className="mb-4">
-                    <h3 className="text-lg font-bold text-slate-800">{title}</h3>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">{title}</h3>
                 </div>
             )}
             {children}

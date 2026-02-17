@@ -1,112 +1,43 @@
 import { useState } from "react";
-import { useGetDriversQuery, useUpdateDriverAvailabilityMutation, useUpdateDriverMutation } from "../../services/driverApi";
+import { useGetDriversQuery, useUpdateDriverAvailabilityMutation, useDeleteDriverMutation } from "../../services/driverApi";
 import type { Driver } from "../../services/driverApi";
+import { useAppSelector } from "../../store/hooks";
 import Card from "../../components/Card";
-import Button from "../../components/Button";
-import Input from "../../components/Input";
-
-const ShiftModal = ({ isOpen, onClose, driver }: { isOpen: boolean; onClose: () => void; driver: Driver | null }) => {
-    const [updateDriver, { isLoading }] = useUpdateDriverMutation();
-    const [formData, setFormData] = useState({
-        shiftStart: "",
-        shiftEnd: "",
-        capacity: 0,
-        zone: ""
-    });
-
-    useState(() => {
-        if (driver) {
-            setFormData({
-                shiftStart: new Date(driver.shiftStart).toISOString().slice(0, 16),
-                shiftEnd: new Date(driver.shiftEnd).toISOString().slice(0, 16),
-                capacity: driver.capacity,
-                zone: driver.zone
-            });
-        }
-    });
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!driver) return;
-        try {
-            await updateDriver({
-                id: driver._id,
-                ...formData
-            }).unwrap();
-            onClose();
-        } catch (err) {
-            console.error("Failed to update driver", err);
-        }
-    };
-
-    if (!isOpen || !driver) return null;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-            <Card className="w-full max-w-md p-8 glass shadow-2xl animate-in zoom-in-95 duration-300">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Edit Roster: {driver.userId.name}</h2>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <Input
-                        label="Active Zone"
-                        value={formData.zone}
-                        onChange={e => setFormData({ ...formData, zone: e.target.value })}
-                        required
-                    />
-                    <Input
-                        label="Capacity (kg)"
-                        type="number"
-                        value={formData.capacity}
-                        onChange={e => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
-                        required
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Shift Start"
-                            type="datetime-local"
-                            value={formData.shiftStart}
-                            onChange={e => setFormData({ ...formData, shiftStart: e.target.value })}
-                            required
-                        />
-                        <Input
-                            label="Shift End"
-                            type="datetime-local"
-                            value={formData.shiftEnd}
-                            onChange={e => setFormData({ ...formData, shiftEnd: e.target.value })}
-                            required
-                        />
-                    </div>
-
-                    <div className="flex gap-4 pt-4">
-                        <Button type="button" onClick={onClose} variant="secondary" className="flex-1 py-4 uppercase tracking-widest text-xs">
-                            Cancel
-                        </Button>
-                        <Button type="submit" className="flex-1 py-4 uppercase tracking-widest text-xs shadow-xl shadow-primary/20" isLoading={isLoading}>
-                            Save Changes
-                        </Button>
-                    </div>
-                </form>
-            </Card>
-        </div>
-    );
-};
+import ShiftModal from "../../components/ShiftModal";
+import ConfirmationModal from "../../components/ConfirmationModal";
 
 const DriversPage = () => {
+    const { user } = useAppSelector((state) => state.auth);
     const { data: drivers, isLoading, error } = useGetDriversQuery();
     const [updateAvailability] = useUpdateDriverAvailabilityMutation();
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [driverToDelete, setDriverToDelete] = useState<string | null>(null);
+
+    const [deleteDriver] = useDeleteDriverMutation();
 
     const toggleAvailability = async (id: string, current: boolean) => {
         try {
             await updateAvailability({ id, isAvailable: !current }).unwrap();
         } catch (err) {
             console.error("Failed to update availability", err);
+        }
+    };
+
+    const handleDeleteClick = (id: string) => {
+        setDriverToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!driverToDelete) return;
+        try {
+            await deleteDriver(driverToDelete).unwrap();
+            setIsDeleteModalOpen(false);
+            setDriverToDelete(null);
+        } catch (err) {
+            console.error("Failed to delete driver", err);
         }
     };
 
@@ -126,7 +57,7 @@ const DriversPage = () => {
                 error && (
                     <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-bold flex items-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
-                        Failed to load drivers. {(error as any)?.data?.message || "Please check your connection."}
+                        Failed to load drivers. {(error as { data?: { message?: string } })?.data?.message || "Please check your connection."}
                     </div>
                 )
             }
@@ -137,55 +68,117 @@ const DriversPage = () => {
                 driver={selectedDriver}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoading ? (
-                    [1, 2, 3].map(i => <div key={i} className="h-48 rounded-2xl bg-white shadow-sm animate-pulse" />)
-                ) : drivers?.map((driver) => (
-                    <Card key={driver._id} className="group relative overflow-hidden">
-                        <div className={`absolute top-0 right-0 w-2 h-full ${driver.isAvailable ? 'bg-green-500' : 'bg-red-400'}`} />
-                        <div className="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 className="text-lg font-black text-slate-800">{driver.userId?.name || 'Unknown Driver'}</h3>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{driver.zone} Region</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => handleEdit(driver)}
-                                    className="p-2 bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-primary rounded-lg transition-colors"
-                                    title="Edit Roster"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
-                                </button>
-                                <button
-                                    onClick={() => toggleAvailability(driver._id, driver.isAvailable)}
-                                    className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-colors ${driver.isAvailable ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-red-50 text-red-600 hover:bg-red-100'
-                                        }`}
-                                >
-                                    {driver.isAvailable ? 'Available' : 'On Break'}
-                                </button>
-                            </div>
-                        </div>
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                title="Purge Driver Identity?"
+                message="This will permanently remove the driver and their associated user account from the platform. This action cannot be undone."
+                confirmText="Terminate Permanently"
+            />
 
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <div className="flex justify-between text-xs font-black uppercase tracking-tight">
-                                    <span className="text-slate-400">Payload Capacity</span>
-                                    <span className="text-slate-800">{driver.currentLoad} / {driver.capacity} kg</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {isLoading ? (
+                    [1, 2, 3].map(i => <div key={i} className="h-64 rounded-3xl bg-white/50 animate-pulse border border-slate-100" />)
+                ) : drivers?.map((driver) => {
+                    const loadPercentage = Math.min((driver.currentLoad / driver.capacity) * 100, 100);
+                    const isNearCapacity = loadPercentage > 85;
+
+                    return (
+                        <Card key={driver._id} className="group relative overflow-hidden p-0 border-none shadow-2xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 glass">
+                            {/* Decorative background element */}
+                            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-20 transition-all duration-700 group-hover:scale-150 ${driver.isAvailable ? 'bg-emerald-500' : 'bg-red-500'}`} />
+
+                            <div className="p-8 space-y-8 relative z-10">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex gap-4 items-center">
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-xl ${driver.isAvailable ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-200' : 'bg-gradient-to-br from-slate-400 to-slate-600 shadow-slate-200'}`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight">{driver.userId?.name || 'Unknown Driver'}</h3>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{driver.zone} Region</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col items-end gap-2">
+                                        <button
+                                            onClick={() => toggleAvailability(driver._id, driver.isAvailable)}
+                                            className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${driver.isAvailable
+                                                ? 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-200'
+                                                : 'bg-red-50 text-red-600 ring-1 ring-red-100 hover:bg-red-500 hover:text-white hover:shadow-lg hover:shadow-red-200'
+                                                }`}
+                                        >
+                                            {driver.isAvailable ? 'Available' : 'Busy'}
+                                        </button>
+                                        {(user?.role === 'ADMIN' || user?.role === 'WAREHOUSE_MANAGER') && (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEdit(driver)}
+                                                    className="p-2 text-slate-400 hover:text-primary transition-colors hover:scale-110 active:scale-95"
+                                                    title="Edit Settings"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(driver._id)}
+                                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors hover:scale-110 active:scale-95"
+                                                    title="Delete Driver"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-primary transition-all duration-500"
-                                        style={{ width: `${(driver.currentLoad / driver.capacity) * 100}%` }}
-                                    />
+
+                                <div className="space-y-4">
+                                    <div className="flex items-end justify-between">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Payload</p>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className={`text-2xl font-black tracking-tight ${isNearCapacity ? 'text-orange-600' : 'text-slate-900'}`}>{driver.currentLoad}</span>
+                                                <span className="text-xs font-bold text-slate-400">/ {driver.capacity} kg</span>
+                                            </div>
+                                        </div>
+                                        <div className={`text-[10px] font-black px-2 py-1 rounded-lg ${isNearCapacity ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                                            {Math.round(loadPercentage)}% LOADED
+                                        </div>
+                                    </div>
+
+                                    <div className="h-3 w-full bg-slate-100/50 rounded-full overflow-hidden p-0.5 border border-slate-100 ring-2 ring-transparent group-hover:ring-slate-50 transition-all">
+                                        <div
+                                            className={`h-full rounded-full transition-all duration-1000 ease-out relative ${isNearCapacity ? 'bg-gradient-to-r from-orange-400 to-red-500' : 'bg-gradient-to-r from-blue-400 to-indigo-600'}`}
+                                            style={{ width: `${loadPercentage}%` }}
+                                        >
+                                            {isNearCapacity && <div className="absolute inset-0 bg-white/20 animate-pulse" />}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Shift Ends</p>
+                                            <p className="text-[10px] font-black text-slate-800">{new Date(driver.shiftEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex -space-x-2">
+                                        {[1, 2, 3].map(i => (
+                                            <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100" />
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <span>Shift Ends</span>
-                                <span className="text-slate-600">{new Date(driver.shiftEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            </div>
-                        </div>
-                    </Card>
-                ))}
+                        </Card>
+                    );
+                })}
             </div>
         </div >
     );

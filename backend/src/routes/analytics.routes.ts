@@ -9,7 +9,7 @@ const router = Router();
 router.get(
     "/dashboard",
     protect,
-    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN),
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN, UserRole.DISPATCHER),
     getDashboardController
 );
 

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import Card from "./Card";
 import Button from "./Button";
+import { Icons } from "./Icons";
 
 interface PoDComponentProps {
     onComplete: (proof: { signatureUrl: string; photoUrl: string }) => void;
@@ -98,7 +99,7 @@ const PoDComponent = ({ onComplete, onCancel }: PoDComponentProps) => {
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Capture evidence to complete order</p>
                     </div>
                     <button onClick={onCancel} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
+                        <Icons.X />
                     </button>
                 </div>
 
@@ -108,7 +109,7 @@ const PoDComponent = ({ onComplete, onCancel }: PoDComponentProps) => {
                             <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Customer Signature</label>
                             <button onClick={clearSignature} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Clear</button>
                         </div>
-                        <div className="relative aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden">
+                        <div className="relative aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden group/canvas">
                             <canvas
                                 ref={canvasRef}
                                 width={400}
@@ -132,19 +133,21 @@ const PoDComponent = ({ onComplete, onCancel }: PoDComponentProps) => {
 
                     <div className="space-y-4">
                         <label className="text-xs font-black text-slate-400 uppercase tracking-widest block">Delivery Photo</label>
-                        <div className="aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden flex items-center justify-center relative">
+                        <div className="aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden flex items-center justify-center relative group/photo">
                             {photo ? (
                                 <img src={photo} alt="Delivery" className="w-full h-full object-cover" />
                             ) : (
                                 <label className="cursor-pointer flex flex-col items-center gap-2">
-                                    <svg className="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-300 group-hover/photo:text-primary transition-colors">
+                                        <Icons.Package />
+                                    </div>
                                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Upload Photo</span>
                                     <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                                 </label>
                             )}
                             {photo && (
                                 <button onClick={() => setPhoto(null)} className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur shadow-sm rounded-lg text-red-500 hover:bg-white transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
+                                    <Icons.X />
                                 </button>
                             )}
                         </div>

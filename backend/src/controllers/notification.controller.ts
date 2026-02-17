@@ -35,3 +35,33 @@ export const markReadController =
             data: notification
         });
     };
+
+export const getUnreadCountController =
+    async (req: Request, res: Response): Promise<void> => {
+        if (!req.user) {
+            throw new AppError("Unauthorized", 401);
+        }
+
+        const { getUnreadNotificationsCount } = await import("../repositories/notification.repository");
+        const count = await getUnreadNotificationsCount(req.user.userId);
+
+        res.status(200).json({
+            success: true,
+            data: { count }
+        });
+    };
+
+export const markAllReadController =
+    async (req: Request, res: Response): Promise<void> => {
+        if (!req.user) {
+            throw new AppError("Unauthorized", 401);
+        }
+
+        const { markAllNotificationsRead } = await import("../repositories/notification.repository");
+        await markAllNotificationsRead(req.user.userId);
+
+        res.status(200).json({
+            success: true,
+            data: { message: "All notifications marked as read" }
+        });
+    };

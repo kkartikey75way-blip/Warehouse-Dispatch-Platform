@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { exportDispatchManifestController } from "../controllers/export.controller";
+import { exportDispatchManifestController, exportDeliveryReportController } from "../controllers/export.controller";
 import { protect } from "../middlewares/auth.middleware";
 import { authorize } from "../middlewares/role.middleware";
 import { UserRole } from "../constants/roles";
@@ -10,9 +10,17 @@ const router = Router();
 router.get(
     "/dispatch-manifest",
     protect,
-    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN),
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN, UserRole.DISPATCHER),
     authRateLimiter,
     exportDispatchManifestController
+);
+
+router.get(
+    "/delivery-report",
+    protect,
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN, UserRole.DISPATCHER),
+    authRateLimiter,
+    exportDeliveryReportController
 );
 
 export default router;

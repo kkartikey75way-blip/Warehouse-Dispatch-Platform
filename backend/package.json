@@ -7,7 +7,9 @@
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "fix-roles": "ts-node src/scripts/fix_manager_role.ts"
+    "fix-roles": "ts-node src/scripts/fix_manager_role.ts",
+    "debug-drivers": "ts-node src/scripts/debug_drivers.ts",
+    "seed:data": "ts-node src/scripts/seed_test_data.ts"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +29,7 @@
     "mongoose": "^9.2.1",
     "morgan": "^1.10.1",
     "nodemailer": "^8.0.1",
+    "uuid": "^13.0.0",
     "winston": "^3.19.0",
     "zod": "^4.3.6"
   },

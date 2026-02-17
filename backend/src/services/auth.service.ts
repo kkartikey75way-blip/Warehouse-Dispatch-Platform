@@ -18,6 +18,9 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "../utils/email.util";
 import { User } from "../models/user.model";
 
+import { createDriver } from "../repositories/driver.repository";
+import { DriverShift } from "../models/driver.model";
+
 export const registerService = async (
     name: string,
     email: string,
@@ -44,6 +47,23 @@ export const registerService = async (
         isVerified: false,
         verificationToken
     });
+
+    if (role === UserRole.DRIVER) {
+        const now = new Date();
+        const shiftEnd = new Date(now);
+        shiftEnd.setHours(now.getHours() + 8);
+
+        await createDriver({
+            userId: user._id,
+            zone,
+            capacity: 500,
+            currentLoad: 0,
+            isAvailable: false,
+            shift: DriverShift.MORNING,
+            shiftStart: now,
+            shiftEnd: shiftEnd
+        });
+    }
 
     await sendVerificationEmail(email, verificationToken);
 

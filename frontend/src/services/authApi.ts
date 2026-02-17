@@ -7,16 +7,29 @@ export interface LoginResponse {
     user: User;
 }
 
+export interface LoginRequest {
+    email: string;
+    password: string;
+}
+
+export interface RegisterRequest {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    zone: string;
+}
+
 export const authApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<LoginResponse, any>({
+        login: builder.mutation<LoginResponse, LoginRequest>({
             query: (credentials) => ({
                 url: "/auth/login",
                 method: "POST",
                 body: credentials
             })
         }),
-        register: builder.mutation<User, any>({
+        register: builder.mutation<User, RegisterRequest>({
             query: (userData) => ({
                 url: "/auth/register",
                 method: "POST",

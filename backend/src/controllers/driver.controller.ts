@@ -4,7 +4,8 @@ import {
     createDriverService,
     updateDriverAvailabilityService,
     updateDriverService,
-    getAllDriversService
+    getAllDriversService,
+    deleteDriverService
 } from "../services/driver.service";
 
 export const getDriversController = async (
@@ -12,7 +13,10 @@ export const getDriversController = async (
     res: Response
 ): Promise<void> => {
     const drivers = await getAllDriversService();
-    res.status(200).json(drivers);
+    res.status(200).json({
+        success: true,
+        data: drivers
+    });
 };
 
 export const updateDriverController = async (
@@ -20,7 +24,12 @@ export const updateDriverController = async (
     res: Response
 ): Promise<void> => {
     const { id } = req.params;
-    const driver = await updateDriverService(id, req.body);
+
+    if (!id) {
+        throw new AppError("Driver ID is required", 400);
+    }
+
+    const driver = await updateDriverService(id as string, req.body);
 
     res.status(200).json({
         success: true,
@@ -60,7 +69,7 @@ export const updateAvailabilityController =
 
         const driver =
             await updateDriverAvailabilityService(
-                id,
+                id as string,
                 isAvailable
             );
 
@@ -69,3 +78,25 @@ export const updateAvailabilityController =
             data: driver
         });
     };
+export const deleteDriverController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { id } = req.params;
+    const user = req.user;
+
+    if (!id) {
+        throw new AppError("Driver ID is required", 400);
+    }
+
+    if (!user) {
+        throw new AppError("Unauthorized", 401);
+    }
+
+    await deleteDriverService(id as string, user.role, user.userId);
+
+    res.status(200).json({
+        success: true,
+        message: "Driver deleted successfully"
+    });
+};

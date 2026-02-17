@@ -15,7 +15,8 @@ const registerSchema = z.object({
     role: z.enum(["ADMIN", "DISPATCHER", "DRIVER", "WAREHOUSE_MANAGER"], {
         message: "Please select a valid role"
     }),
-    zone: z.string().min(1, "Zone is required")
+    zone: z.string().min(1, "Zone is required"),
+    shift: z.enum(["MORNING", "AFTERNOON", "NIGHT"]).optional()
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -33,7 +34,7 @@ const RegisterPage = () => {
         try {
             await register(data).unwrap();
             setIsRegistered(true);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Registration failed:", err);
         }
     };
@@ -112,6 +113,19 @@ const RegisterPage = () => {
                         {...registerField("zone")}
                         error={errors.zone?.message}
                     />
+
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Working Shift</label>
+                        <select
+                            {...registerField("shift")}
+                            className={`w-full p-3 rounded-xl border ${errors.shift ? 'border-red-500' : 'border-slate-200'} bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all font-medium text-slate-600`}
+                        >
+                            <option value="MORNING">Morning (06:00 - 14:00)</option>
+                            <option value="AFTERNOON">Afternoon (14:00 - 22:00)</option>
+                            <option value="NIGHT">Night (22:00 - 06:00)</option>
+                        </select>
+                        {errors.shift && <p className="text-[10px] font-black text-red-500 mt-1 ml-1 uppercase">{errors.shift.message}</p>}
+                    </div>
 
                     <Button type="submit" className="w-full py-4 text-sm tracking-widest" isLoading={isLoading}>
                         CREATE ACCOUNT

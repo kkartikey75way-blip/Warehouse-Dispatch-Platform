@@ -1,23 +1,22 @@
 import { Response } from "express";
 
-/**
- * Converts an array of objects to CSV format and sends it as a download
- */
-export const exportToCsv = (res: Response, filename: string, data: any[]) => {
-    if (data.length === 0) {
+
+export const exportToCsv = (res: Response, filename: string, data: Record<string, string | number | boolean | null>[]) => {
+    const firstRow = data[0];
+    if (!firstRow) {
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
         res.send("");
         return;
     }
 
-    const headers = Object.keys(data[0]);
+    const headers = Object.keys(firstRow);
     const csvContent = [
         headers.join(','),
         ...data.map(row =>
             headers.map(header => {
                 const val = row[header];
-                // Escape quotes and wrap in quotes if contains commas
+
                 const stringVal = val === null || val === undefined ? "" : String(val);
                 if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
                     return `"${stringVal.replace(/"/g, '""')}"`;

@@ -4,12 +4,14 @@ import { Types } from "mongoose";
 export const createNotification = async (
     userId: Types.ObjectId,
     title: string,
-    message: string
+    message: string,
+    type: string = "INFO"
 ): Promise<INotification> => {
     return Notification.create({
         userId,
         title,
-        message
+        message,
+        type
     });
 };
 
@@ -26,7 +28,25 @@ export const markNotificationRead = async (
 ): Promise<INotification | null> => {
     return Notification.findByIdAndUpdate(
         id,
-        { isRead: true },
+        { read: true },
         { new: true }
+    );
+};
+
+export const getUnreadNotificationsCount = async (
+    userId: string
+): Promise<number> => {
+    return Notification.countDocuments({
+        userId,
+        read: false
+    });
+};
+
+export const markAllNotificationsRead = async (
+    userId: string
+): Promise<void> => {
+    await Notification.updateMany(
+        { userId, read: false },
+        { read: true }
     );
 };

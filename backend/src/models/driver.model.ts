@@ -1,15 +1,26 @@
 import { Schema, model, Document, Types } from "mongoose";
 
-export interface IDriver extends Document {
+export enum DriverShift {
+    MORNING = "MORNING",
+    AFTERNOON = "AFTERNOON",
+    NIGHT = "NIGHT"
+}
+
+export interface IDriverInput {
     userId: Types.ObjectId;
     zone: string;
     capacity: number;
     currentLoad: number;
     isAvailable: boolean;
+    shift: DriverShift;
     shiftStart: Date;
     shiftEnd: Date;
+}
+
+export interface IDriver extends IDriverInput, Document {
     createdAt: Date;
     updatedAt: Date;
+
 }
 
 const driverSchema = new Schema<IDriver>(
@@ -37,6 +48,12 @@ const driverSchema = new Schema<IDriver>(
         isAvailable: {
             type: Boolean,
             default: true,
+            index: true
+        },
+        shift: {
+            type: String,
+            enum: Object.values(DriverShift),
+            default: DriverShift.MORNING,
             index: true
         },
         shiftStart: {

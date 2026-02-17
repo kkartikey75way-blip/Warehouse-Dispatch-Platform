@@ -1,4 +1,4 @@
-import { Dispatch } from "../models/dispatch.model";
+import { Dispatch, IDispatch } from "../models/dispatch.model";
 import { Types } from "mongoose";
 import { ShipmentStatus } from "../constants/shipmentStatus";
 
@@ -22,7 +22,7 @@ export const createDispatchRecords = async (
     await Dispatch.bulkWrite(bulk);
 };
 
-export const getDispatches = async (): Promise<any[]> => {
+export const getDispatches = async (): Promise<IDispatch[]> => {
     return Dispatch.find()
         .populate("shipmentId")
         .populate({
@@ -31,3 +31,15 @@ export const getDispatches = async (): Promise<any[]> => {
         })
         .sort({ dispatchTime: -1 });
 };
+
+export const updateDispatchStatus = async (
+    shipmentId: string,
+    status: ShipmentStatus
+): Promise<void> => {
+    await Dispatch.findOneAndUpdate(
+        { shipmentId: new Types.ObjectId(shipmentId) },
+        { status },
+        { sort: { dispatchTime: -1 } }
+    );
+};
+

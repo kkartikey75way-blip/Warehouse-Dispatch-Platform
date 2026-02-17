@@ -5,31 +5,44 @@ const TopBar = () => {
     const { user } = useSelector((state: RootState) => state.auth);
 
     return (
-        <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-8 sticky top-0 z-10">
-            <div>
-                <h2 className="text-sm font-black text-slate-400 uppercase tracking-widest">
-                    Welcome Back
-                </h2>
-                <p className="text-lg font-bold text-slate-800">
-                    {user?.email?.split('@')[0]}
-                </p>
+        <header className="h-24 bg-surface/60 backdrop-blur-2xl border-b border-border-subtle flex items-center justify-between px-10 sticky top-0 z-20 overflow-hidden">
+            <div className="relative z-10 flex flex-col justify-center">
+                <p className="text-[10px] font-black text-txt-muted uppercase tracking-[0.3em] mb-1">Operational Pulse</p>
+                <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-black text-txt-main tracking-tight leading-none truncate max-w-[200px] sm:max-w-none">
+                        Greeting, <span className="text-primary">{user?.email?.split('@')[0]}</span>
+                    </h2>
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50 flex-shrink-0" />
+                </div>
             </div>
 
-            <div className="flex items-center gap-6">
-                <div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-sm font-bold text-slate-600">Active Session</span>
+            <div className="flex items-center gap-6 relative z-10">
+                {/* Status Indicator */}
+                <div className="hidden lg:flex items-center gap-4 px-5 py-2.5 bg-txt-main/5 rounded-xl border border-border-subtle/50 transition-all hover:bg-txt-main/10 active:scale-95 cursor-pointer">
+                    <div className="relative flex items-center justify-center">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute opacity-40" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative ring-4 ring-emerald-500/10" />
+                    </div>
+                    <span className="text-[10px] font-black text-txt-muted uppercase tracking-widest whitespace-nowrap">Secured Node</span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="text-right">
-                        <p className="text-sm font-bold text-slate-800 leading-none">{user?.email?.split('@')[0]}</p>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-1">
-                            {user?.role?.replace('_', ' ')}
+                <div className="h-10 w-px bg-border-subtle hidden sm:block" />
+
+                {/* User Profile Summary */}
+                <div className="group flex items-center gap-4 cursor-pointer hover:bg-txt-main/5 p-2 -m-2 rounded-2xl transition-all duration-300">
+                    <div className="text-right hidden sm:block">
+                        <p className="text-sm font-black text-txt-main leading-none group-hover:text-primary transition-colors">{user?.email?.split('@')[0]}</p>
+                        <p className="text-[9px] font-black text-txt-muted uppercase tracking-[0.2em] mt-1.5 opacity-60">
+                            ID: {user?.role?.substring(0, 3)}-{Math.floor(Math.random() * 9000) + 1000}
                         </p>
                     </div>
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black">
-                        {user?.email?.[0].toUpperCase()}
+                    <div className="relative">
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900 p-0.5 shadow-xl transition-transform group-hover:scale-110 group-hover:rotate-3">
+                            <div className="w-full h-full rounded-[0.6rem] bg-slate-900 flex items-center justify-center border border-white/10">
+                                <span className="text-white font-black text-lg">{user?.email?.[0].toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-surface shadow-sm" />
                     </div>
                 </div>
             </div>

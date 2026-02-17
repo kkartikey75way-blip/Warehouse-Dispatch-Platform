@@ -11,18 +11,32 @@ export interface Shipment {
     destination: string;
     weight: number;
     volume: number;
+    assignedDriverId?: string;
+    acceptedByDriver?: boolean;
+    acceptedAt?: string;
+    batchId?: string;
     createdAt: string;
     updatedAt: string;
 }
 
+export interface RecentActivity {
+    description: string;
+    time: string;
+}
+
 export interface KpiDashboard {
+    onTimeRate: number;
+    avgDispatchTime: number;
+    todayShipments: number;
     totalShipments: number;
     dispatchedToday: number;
     deliveredToday: number;
     activeDrivers: number;
-    shipmentsByStatus: Array<{ _id: string; count: number }>;
-    driverUtilization: Array<{ name: string; utilization: number }>;
-    recentActivity: any[];
+    shipmentsByStatus?: Array<{ _id: string; count: number }>;
+    driverUtilization: Array<{ name: string; utilization: number; deliveries?: number }>;
+    recentActivity: RecentActivity[];
+    trends: Array<{ name: string; value: number }>;
+    performanceScore: number;
 }
 
 export interface Dispatch {

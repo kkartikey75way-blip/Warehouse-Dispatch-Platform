@@ -3,17 +3,22 @@ import { AppError } from "../utils/appError";
 import {
     createShipmentService,
     updateShipmentStatusService,
-    getShipmentsService
+    getShipmentsService,
+    acceptShipmentService
 } from "../services/shipment.service";
+import { IShipmentFilter } from "../repositories/shipment.repository";
 
 export const getShipmentsController = async (
     req: Request,
     res: Response
 ): Promise<void> => {
-    const filter = req.query;
+    const filter = req.query as unknown as IShipmentFilter;
     const shipments = await getShipmentsService(filter);
 
-    res.status(200).json(shipments); // Flattened response for frontend
+    res.status(200).json({
+        success: true,
+        data: shipments
+    });
 };
 
 export const createShipmentController = async (
@@ -59,3 +64,49 @@ export const updateShipmentStatusController =
             data: shipment
         });
     };
+
+export const acceptShipmentController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { shipmentId } = req.params as { shipmentId: string };
+    const { driverId } = req.body;
+
+    if (!shipmentId) {
+        throw new AppError("Shipment ID is required", 400);
+    }
+
+    if (!driverId) {
+        throw new AppError("Driver ID is required", 400);
+    }
+
+    const shipment = await acceptShipmentService(shipmentId, driverId);
+
+    res.status(200).json({
+        success: true,
+        data: shipment
+    });
+};
+
+export const exportShipmentsController = async (
+    _req: Request,
+    res: Response
+): Promise<void> => {
+    const { exportToCsv } = await import("../utils/export.util");
+    const shipments = await getShipmentsService({});
+
+    const exportData = shipments.map((s) => ({
+        TrackingId: s.trackingId,
+        SKU: s.sku,
+        Quantity: s.quantity,
+        Type: s.type,
+        Priority: s.priority,
+        Zone: s.zone,
+        Origin: s.origin,
+        Destination: s.destination,
+        Status: s.status,
+        CreatedAt: s.createdAt.toISOString()
+    }));
+
+    exportToCsv(res, `shipments-${new Date().toISOString().split('T')[0]}.csv`, exportData);
+};

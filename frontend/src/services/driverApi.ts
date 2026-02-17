@@ -19,6 +19,7 @@ export const driverApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getDrivers: builder.query<Driver[], void>({
             query: () => "/drivers",
+            transformResponse: (response: { success: boolean; data: Driver[] }) => response.data,
             providesTags: ["Driver"]
         }),
         updateDriverAvailability: builder.mutation<Driver, { id: string; isAvailable: boolean }>({
@@ -27,6 +28,7 @@ export const driverApi = baseApi.injectEndpoints({
                 method: "PATCH",
                 body: { isAvailable }
             }),
+            transformResponse: (response: { success: boolean; data: Driver }) => response.data,
             invalidatesTags: ["Driver"]
         }),
         updateDriver: builder.mutation<Driver, { id: string; zone?: string; capacity?: number; shiftStart?: string; shiftEnd?: string }>({
@@ -34,6 +36,14 @@ export const driverApi = baseApi.injectEndpoints({
                 url: `/drivers/${id}`,
                 method: "PATCH",
                 body
+            }),
+            transformResponse: (response: { success: boolean; data: Driver }) => response.data,
+            invalidatesTags: ["Driver"]
+        }),
+        deleteDriver: builder.mutation<{ success: boolean; message: string }, string>({
+            query: (id) => ({
+                url: `/drivers/${id}`,
+                method: "DELETE"
             }),
             invalidatesTags: ["Driver"]
         })
@@ -43,5 +53,6 @@ export const driverApi = baseApi.injectEndpoints({
 export const {
     useGetDriversQuery,
     useUpdateDriverAvailabilityMutation,
-    useUpdateDriverMutation
+    useUpdateDriverMutation,
+    useDeleteDriverMutation
 } = driverApi;

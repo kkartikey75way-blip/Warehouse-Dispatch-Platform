@@ -22,3 +22,9 @@ export const setCache = async (
         ttlSeconds
     );
 };
+
+export const deleteCache = async (
+    key: string
+): Promise<void> => {
+    await redisClient.del(key);
+};

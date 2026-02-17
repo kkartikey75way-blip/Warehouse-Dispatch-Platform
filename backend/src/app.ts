@@ -40,6 +40,14 @@ app.get(
 app.use(attachRequestId);
 app.use(requestLogger);
 
+
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+});
+
 app.use(helmet());
 app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -48,7 +56,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(globalRateLimiter);
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); 
 app.use(cookieParser());
 app.use(morgan("dev"));
 

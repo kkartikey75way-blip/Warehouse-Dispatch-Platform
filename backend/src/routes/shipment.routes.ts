@@ -2,7 +2,9 @@ import { Router } from "express";
 import {
     createShipmentController,
     updateShipmentStatusController,
-    getShipmentsController
+    getShipmentsController,
+    acceptShipmentController,
+    exportShipmentsController
 } from "../controllers/shipment.controller";
 import { validate } from "../middlewares/validation.middleware";
 import {
@@ -27,6 +29,13 @@ router.post(
     createShipmentController
 );
 
+router.get(
+    "/export",
+    protect,
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.DISPATCHER, UserRole.ADMIN),
+    exportShipmentsController
+);
+
 router.patch(
     "/:id/status",
     protect,
@@ -34,6 +43,13 @@ router.patch(
     authRateLimiter,
     validate(updateStatusSchema),
     updateShipmentStatusController
+);
+
+router.patch(
+    "/:shipmentId/accept",
+    protect,
+    authorize(UserRole.DRIVER),
+    acceptShipmentController
 );
 
 export default router;

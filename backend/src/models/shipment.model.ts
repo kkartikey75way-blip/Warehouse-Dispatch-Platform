@@ -16,6 +16,9 @@ export interface IShipmentBase {
     volume: number;
     status: ShipmentStatus;
     assignedDriverId?: Types.ObjectId;
+    acceptedByDriver?: boolean;
+    acceptedAt?: Date;
+    batchId?: string;
 }
 
 export interface IShipment extends IShipmentBase, Document {
@@ -81,12 +84,23 @@ const shipmentSchema = new Schema<IShipment>(
         assignedDriverId: {
             type: Schema.Types.ObjectId,
             ref: "Driver"
+        },
+        acceptedByDriver: {
+            type: Boolean,
+            default: false
+        },
+        acceptedAt: {
+            type: Date
+        },
+        batchId: {
+            type: String,
+            index: true
         }
     },
     { timestamps: true }
 );
 
-// Compound indexes for efficient queries
+
 shipmentSchema.index({ status: 1, priority: -1, createdAt: 1 });
 shipmentSchema.index({ zone: 1, status: 1 });
 

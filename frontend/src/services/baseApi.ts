@@ -23,7 +23,7 @@ const baseQueryWithReauth: BaseQueryFn<
     let result = await baseQuery(args, api, extraOptions);
 
     if (result.error && result.error.status === 401) {
-        // try to get a new token
+        
         const refreshResult = await baseQuery(
             {
                 url: "/auth/refresh",
@@ -36,10 +36,10 @@ const baseQueryWithReauth: BaseQueryFn<
 
         if (refreshResult.data) {
             const data = refreshResult.data as { newAccess: string; newRefresh: string; user: User };
-            // store the new token
+            
             api.dispatch(setCredentials({ user: data.user, token: data.newAccess }));
             localStorage.setItem("refreshToken", data.newRefresh);
-            // retry the initial query
+            
             result = await baseQuery(args, api, extraOptions);
         } else {
             api.dispatch(logout());
@@ -52,5 +52,9 @@ export const baseApi = createApi({
     reducerPath: "api",
     baseQuery: baseQueryWithReauth,
     endpoints: () => ({}),
-    tagTypes: ["Shipment", "Driver", "Dispatch", "Notification", "Analytics"]
+    tagTypes: ["Shipment", "Driver", "Dispatch", "Notification", "Analytics"],
+    keepUnusedDataFor: 0, 
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+    refetchOnReconnect: true
 });

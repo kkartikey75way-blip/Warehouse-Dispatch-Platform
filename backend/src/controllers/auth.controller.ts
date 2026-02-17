@@ -61,7 +61,7 @@ export const verifyEmailController = async (
     try {
         await verifyEmailService(token);
         res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Verification error:", error);
         res.redirect(`${process.env.FRONTEND_URL}/login?error=verification_failed`);
     }

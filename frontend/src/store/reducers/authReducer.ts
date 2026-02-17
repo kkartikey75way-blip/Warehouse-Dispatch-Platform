@@ -1,11 +1,13 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-export type UserRole = "WAREHOUSE_MANAGER" | "DISPATCHER" | "DRIVER";
+export type UserRole = "WAREHOUSE_MANAGER" | "DISPATCHER" | "DRIVER" | "ADMIN";
 
 export interface User {
     id: string;
+    _id?: string;
     email: string;
     role: UserRole;
+    name?: string;
 }
 
 interface AuthState {
@@ -14,7 +16,7 @@ interface AuthState {
     isAuthenticated: boolean;
 }
 
-// Load auth state from localStorage
+
 const loadAuthState = (): AuthState => {
     try {
         const serializedState = localStorage.getItem("authState");
@@ -35,13 +37,13 @@ const loadAuthState = (): AuthState => {
     }
 };
 
-// Save auth state to localStorage
+
 const saveAuthState = (state: AuthState) => {
     try {
         const serializedState = JSON.stringify(state);
         localStorage.setItem("authState", serializedState);
     } catch (err) {
-        // Ignore write errors
+
     }
 };
 

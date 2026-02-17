@@ -10,7 +10,7 @@ export const authorize =
             }
 
             if (!allowedRoles.includes(req.user.role)) {
-                console.error(`❌ Access Denied: User role '${req.user.role}' is not in allowed roles: [${allowedRoles.join(", ")}]`);
+                console.error(`Access Denied: User role '${req.user.role}' is not in allowed roles: [${allowedRoles.join(", ")}]`);
                 throw new AppError("Forbidden", 403);
             }
 

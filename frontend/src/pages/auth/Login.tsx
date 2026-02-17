@@ -57,8 +57,9 @@ const LoginPage = () => {
 
             localStorage.setItem("refreshToken", result.refreshToken);
             navigate("/");
-        } catch (err: any) {
-            setError(err.data?.message || "Something went wrong. Please try again.");
+        } catch (err: unknown) {
+            setError("Invalid credentials or server error. Please try again.");
+            console.error("Login failed:", err);
         }
     };
 

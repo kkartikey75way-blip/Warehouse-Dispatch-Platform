@@ -3,14 +3,16 @@ import {
     findShipmentByTrackingId,
     updateShipmentStatus,
     findShipmentById,
-    getShipments
+    getShipments,
+    IShipmentFilter
 } from "../repositories/shipment.repository";
 import { ShipmentStatus } from "../constants/shipmentStatus";
 import { ShipmentPriority } from "../constants/priorities";
 import { ShipmentType } from "../constants/shipmentType";
 import { AppError } from "../utils/appError";
+import { IShipment } from "../models/shipment.model";
 
-export const getShipmentsService = async (filter: any = {}) => {
+export const getShipmentsService = async (filter: IShipmentFilter = {}) => {
     return getShipments(filter);
 };
 
@@ -64,7 +66,7 @@ export const updateShipmentStatusService = async (
         throw new AppError("Shipment not found", 404);
     }
 
-    // Status flow validation
+
     const validTransitions: Record<
         ShipmentStatus,
         ShipmentStatus[]
@@ -85,4 +87,33 @@ export const updateShipmentStatusService = async (
     }
 
     return updateShipmentStatus(id, status);
+};
+
+export const acceptShipmentService = async (
+    shipmentId: string,
+    driverId: string
+) => {
+    const shipment = await findShipmentById(shipmentId);
+
+    if (!shipment) {
+        throw new AppError("Shipment not found", 404);
+    }
+
+    if (shipment.status !== ShipmentStatus.DISPATCHED) {
+        throw new AppError("Only dispatched shipments can be accepted", 400);
+    }
+
+    if (String(shipment.assignedDriverId) !== driverId) {
+        throw new AppError("Shipment not assigned to this driver", 403);
+    }
+
+    if (shipment.acceptedByDriver) {
+        throw new AppError("Shipment already accepted", 400);
+    }
+
+    shipment.acceptedByDriver = true;
+    shipment.acceptedAt = new Date();
+    await shipment.save();
+
+    return shipment;
 };

@@ -1,7 +1,7 @@
-import { Driver, IDriver } from "../models/driver.model";
+import { Driver, IDriver, IDriverInput } from "../models/driver.model";
 
 export const createDriver = async (
-    data: Omit<IDriver, "_id" | "createdAt" | "updatedAt">
+    data: IDriverInput
 ): Promise<IDriver> => {
     return Driver.create(data);
 };
@@ -48,4 +48,23 @@ export const updateDriver = async (
     data: Partial<IDriver>
 ): Promise<IDriver | null> => {
     return Driver.findByIdAndUpdate(id, data, { new: true });
+};
+
+export const reduceDriverLoadAndCapacity = async (
+    id: string,
+    weight: number
+): Promise<IDriver | null> => {
+    return Driver.findByIdAndUpdate(
+        id,
+        {
+            $inc: {
+                currentLoad: -weight,
+                capacity: -weight
+            }
+        },
+        { new: true }
+    );
+};
+export const deleteDriverById = async (id: string): Promise<IDriver | null> => {
+    return Driver.findByIdAndDelete(id);
 };

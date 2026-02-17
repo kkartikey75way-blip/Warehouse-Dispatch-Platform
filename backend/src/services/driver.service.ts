@@ -1,13 +1,16 @@
 import { Types } from "mongoose";
+import { User } from "../models/user.model";
+import { UserRole } from "../constants/roles";
 import {
     createDriver,
     findDriverByUserId,
     updateDriverAvailability,
     updateDriverLoad,
-    updateDriver
+    updateDriver,
+    deleteDriverById
 } from "../repositories/driver.repository";
 import { AppError } from "../utils/appError";
-import { Driver } from "../models/driver.model";
+import { Driver, DriverShift } from "../models/driver.model";
 
 export const createDriverService = async (
     userId: string,
@@ -32,9 +35,10 @@ export const createDriverService = async (
         capacity,
         currentLoad: 0,
         isAvailable: true,
+        shift: DriverShift.MORNING,
         shiftStart,
         shiftEnd
-    } as any);
+    });
 };
 
 export const updateDriverAvailabilityService = async (
@@ -85,7 +89,7 @@ export const updateDriverService = async (
         shiftEnd: Date;
     }>
 ) => {
-    const driver = await updateDriver(id, updates as any);
+    const driver = await updateDriver(id, updates);
 
     if (!driver) {
         throw new AppError("Driver not found", 404);
@@ -94,6 +98,61 @@ export const updateDriverService = async (
     return driver;
 };
 
+
 export const getAllDriversService = async () => {
-    return Driver.find().populate("userId");
+
+    const driverUsers = await User.find({ role: UserRole.DRIVER });
+    const existingDrivers = await Driver.find();
+
+    const existingUserIds = new Set(existingDrivers.map(d => d.userId.toString()));
+
+    const missingDrivers = driverUsers.filter(u => !existingUserIds.has(u._id.toString()));
+
+    if (missingDrivers.length > 0) {
+        console.log(`Creating ${missingDrivers.length} missing driver profiles...`);
+        const now = new Date();
+        const shiftEnd = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+
+        await Promise.all(missingDrivers.map(user =>
+            createDriver({
+                userId: user._id as Types.ObjectId,
+                zone: user.zone || 'Default',
+                capacity: 500,
+                currentLoad: 0,
+                isAvailable: true,
+                shift: DriverShift.MORNING,
+                shiftStart: now,
+                shiftEnd: shiftEnd
+            })
+        ));
+    }
+
+    return Driver.find().populate("userId").exec();
+};
+export const deleteDriverService = async (
+    id: string,
+    requesterRole: string,
+    requesterId: string
+) => {
+    const driver = await Driver.findById(id);
+
+    if (!driver) {
+        throw new AppError("Driver profile not found", 404);
+    }
+
+    // Authorization check: Admin/Manager or the Driver themselves
+    const isOwner = driver.userId.toString() === requesterId;
+    const isAdmin = requesterRole === UserRole.ADMIN || requesterRole === UserRole.WAREHOUSE_MANAGER;
+
+    if (!isOwner && !isAdmin) {
+        throw new AppError("You are not authorized to delete this account", 403);
+    }
+
+    // Delete associated User account first
+    await User.findByIdAndDelete(driver.userId);
+
+    // Delete Driver profile
+    await deleteDriverById(id);
+
+    return { message: "Driver and associated user account deleted successfully" };
 };

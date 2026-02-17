@@ -3,7 +3,8 @@ import {
     createDriverController,
     updateAvailabilityController,
     getDriversController,
-    updateDriverController
+    updateDriverController,
+    deleteDriverController
 } from "../controllers/driver.controller";
 import { validate } from "../middlewares/validation.middleware";
 import {
@@ -19,7 +20,7 @@ const router = Router();
 router.get(
     "/",
     protect,
-    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.DISPATCHER, UserRole.ADMIN),
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.DISPATCHER, UserRole.ADMIN, UserRole.DRIVER),
     getDriversController
 );
 
@@ -41,9 +42,15 @@ router.patch(
 router.patch(
     "/:id/availability",
     protect,
-    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.DISPATCHER, UserRole.ADMIN),
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.DISPATCHER, UserRole.DRIVER, UserRole.ADMIN),
     validate(updateAvailabilitySchema),
     updateAvailabilityController
+);
+router.delete(
+    "/:id",
+    protect,
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN, UserRole.DRIVER),
+    deleteDriverController
 );
 
 export default router;

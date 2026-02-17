@@ -21,7 +21,7 @@ export const deliveryApi = baseApi.injectEndpoints({
                 method: "POST",
                 body: { driverId }
             }),
-            invalidatesTags: ["Dispatch", "Shipment", "Analytics"]
+            invalidatesTags: ["Dispatch", "Shipment", "Analytics", "Driver"]
         }),
         completeDelivery: builder.mutation<Delivery, { shipmentId: string; signatureUrl: string; photoUrl: string }>({
             query: ({ shipmentId, ...body }) => ({
@@ -29,7 +29,7 @@ export const deliveryApi = baseApi.injectEndpoints({
                 method: "PATCH",
                 body
             }),
-            invalidatesTags: ["Dispatch", "Shipment", "Analytics"]
+            invalidatesTags: ["Dispatch", "Shipment", "Analytics", "Driver"]
         }),
         reportException: builder.mutation<Delivery, { shipmentId: string; exception: string }>({
             query: ({ shipmentId, ...body }) => ({
@@ -37,7 +37,7 @@ export const deliveryApi = baseApi.injectEndpoints({
                 method: "PATCH",
                 body
             }),
-            invalidatesTags: ["Dispatch", "Shipment", "Analytics"]
+            invalidatesTags: ["Dispatch", "Shipment", "Analytics", "Driver"]
         })
     })
 });

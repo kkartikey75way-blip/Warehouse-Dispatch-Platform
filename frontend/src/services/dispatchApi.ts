@@ -21,6 +21,22 @@ export const dispatchApi = baseApi.injectEndpoints({
                 body
             }),
             invalidatesTags: ["Dispatch", "Shipment", "Analytics", "Driver"]
+        }),
+        groupShipments: builder.mutation<{ success: boolean; message: string; batchId: string }, { shipmentIds: string[] }>({
+            query: (body) => ({
+                url: "/dispatch/batch",
+                method: "POST",
+                body
+            }),
+            invalidatesTags: ["Shipment"]
+        }),
+        assignBatch: builder.mutation<{ success: boolean; message: string }, { batchId: string; driverId: string }>({
+            query: (body) => ({
+                url: "/dispatch/assign-batch",
+                method: "POST",
+                body
+            }),
+            invalidatesTags: ["Dispatch", "Shipment", "Driver"]
         })
     })
 });
@@ -28,5 +44,7 @@ export const dispatchApi = baseApi.injectEndpoints({
 export const {
     useGetDispatchesQuery,
     useAutoAssignDispatchMutation,
-    useAssignDispatchMutation
+    useAssignDispatchMutation,
+    useGroupShipmentsMutation,
+    useAssignBatchMutation
 } = dispatchApi;

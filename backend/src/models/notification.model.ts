@@ -4,7 +4,8 @@ export interface INotification extends Document {
     userId: Types.ObjectId;
     title: string;
     message: string;
-    isRead: boolean;
+    type: string;
+    read: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -25,7 +26,12 @@ const notificationSchema = new Schema<INotification>(
             type: String,
             required: true
         },
-        isRead: {
+        type: {
+            type: String,
+            required: true,
+            default: "INFO"
+        },
+        read: {
             type: Boolean,
             default: false
         }
