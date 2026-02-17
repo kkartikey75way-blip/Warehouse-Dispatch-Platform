@@ -3,6 +3,7 @@ export enum ShipmentStatus {
     PACKED = "PACKED",
     DISPATCHED = "DISPATCHED",
     IN_TRANSIT = "IN_TRANSIT",
+    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
     DELIVERED = "DELIVERED",
     RETURNED = "RETURNED"
 }

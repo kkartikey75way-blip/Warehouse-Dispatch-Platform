@@ -1,3 +1,17 @@
+export interface LocationPoint {
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+    accuracy?: number;
+}
+
+export interface StatusHistoryEntry {
+    status: string;
+    timestamp: string;
+    updatedBy?: string;
+    notes?: string;
+}
+
 export interface Shipment {
     _id: string;
     trackingId: string;
@@ -15,6 +29,10 @@ export interface Shipment {
     acceptedByDriver?: boolean;
     acceptedAt?: string;
     batchId?: string;
+    currentLocation?: LocationPoint;
+    locationHistory: LocationPoint[];
+    statusHistory: StatusHistoryEntry[];
+    estimatedDeliveryTime?: string;
     createdAt: string;
     updatedAt: string;
 }

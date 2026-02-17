@@ -18,6 +18,7 @@ import deliveryRoutes from "./routes/delivery.routes";
 import analyticsRoutes from "./routes/analytics.routes";
 import notificationRoutes from "./routes/notification.routes";
 import exportRoutes from "./routes/export.routes";
+import trackingRoutes from "./routes/tracking.routes";
 import { attachRequestId } from "./middlewares/requestId.middleware";
 import { requestLogger } from "./middlewares/logging.middleware";
 
@@ -56,7 +57,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(globalRateLimiter);
-app.use(express.json({ limit: '10mb' })); 
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
@@ -72,6 +73,7 @@ app.use("/api/delivery", deliveryRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/export", exportRoutes);
+app.use("/api/tracking", trackingRoutes);
 
 app.use(errorMiddleware);
 

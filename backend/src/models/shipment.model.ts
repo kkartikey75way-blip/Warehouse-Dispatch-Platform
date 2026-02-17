@@ -3,6 +3,20 @@ import { ShipmentStatus } from "../constants/shipmentStatus";
 import { ShipmentType } from "../constants/shipmentType";
 import { ShipmentPriority } from "../constants/priorities";
 
+export interface LocationPoint {
+    latitude: number;
+    longitude: number;
+    timestamp: Date;
+    accuracy?: number;
+}
+
+export interface StatusHistoryEntry {
+    status: ShipmentStatus;
+    timestamp: Date;
+    updatedBy?: string;
+    notes?: string;
+}
+
 export interface IShipmentBase {
     trackingId: string;
     sku: string;
@@ -19,6 +33,10 @@ export interface IShipmentBase {
     acceptedByDriver?: boolean;
     acceptedAt?: Date;
     batchId?: string;
+    currentLocation?: LocationPoint;
+    locationHistory: LocationPoint[];
+    statusHistory: StatusHistoryEntry[];
+    estimatedDeliveryTime?: Date;
 }
 
 export interface IShipment extends IShipmentBase, Document {
@@ -95,6 +113,37 @@ const shipmentSchema = new Schema<IShipment>(
         batchId: {
             type: String,
             index: true
+        },
+        currentLocation: {
+            latitude: { type: Number },
+            longitude: { type: Number },
+            timestamp: { type: Date },
+            accuracy: { type: Number }
+        },
+        locationHistory: {
+            type: [{
+                latitude: { type: Number, required: true },
+                longitude: { type: Number, required: true },
+                timestamp: { type: Date, required: true },
+                accuracy: { type: Number }
+            }],
+            default: []
+        },
+        statusHistory: {
+            type: [{
+                status: {
+                    type: String,
+                    enum: Object.values(ShipmentStatus),
+                    required: true
+                },
+                timestamp: { type: Date, required: true },
+                updatedBy: { type: String },
+                notes: { type: String }
+            }],
+            default: []
+        },
+        estimatedDeliveryTime: {
+            type: Date
         }
     },
     { timestamps: true }

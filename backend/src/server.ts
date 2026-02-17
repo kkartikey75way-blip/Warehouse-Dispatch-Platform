@@ -4,11 +4,22 @@ import { env } from "./config/env";
 import "./services/notification.service";
 import mongoose from "mongoose";
 import { redisClient } from "./config/redis";
+import { createServer } from "http";
+import { initializeSocket } from "./config/socket.config";
+import { SocketHandlers } from "./services/socket.handlers";
 
 const startServer = async (): Promise<void> => {
     await connectDatabase();
 
-    const server = app.listen(Number(env.PORT), () => {
+    // Create HTTP server and integrate Socket.io
+    const httpServer = createServer(app);
+    initializeSocket(httpServer);
+
+    // Initialize WebSocket event handlers
+    const socketHandlers = new SocketHandlers();
+    socketHandlers.initialize();
+
+    const server = httpServer.listen(Number(env.PORT), () => {
         console.log(`Server running on port ${env.PORT}`);
     });
 
