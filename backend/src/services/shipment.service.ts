@@ -52,7 +52,13 @@ export const createShipmentService = async (
         origin,
         destination,
         weight,
-        volume
+        volume,
+        locationHistory: [],
+        statusHistory: [{
+            status,
+            timestamp: new Date(),
+            notes: "Shipment created"
+        }]
     });
 };
 
@@ -74,7 +80,8 @@ export const updateShipmentStatusService = async (
         RECEIVED: [ShipmentStatus.PACKED],
         PACKED: [ShipmentStatus.DISPATCHED],
         DISPATCHED: [ShipmentStatus.IN_TRANSIT],
-        IN_TRANSIT: [ShipmentStatus.DELIVERED],
+        IN_TRANSIT: [ShipmentStatus.OUT_FOR_DELIVERY, ShipmentStatus.DELIVERED],
+        OUT_FOR_DELIVERY: [ShipmentStatus.DELIVERED, ShipmentStatus.RETURNED],
         DELIVERED: [],
         RETURNED: []
     };
