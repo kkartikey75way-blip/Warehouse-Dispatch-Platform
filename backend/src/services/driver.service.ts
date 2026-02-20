@@ -37,7 +37,8 @@ export const createDriverService = async (
         isAvailable: true,
         shift: DriverShift.MORNING,
         shiftStart,
-        shiftEnd
+        shiftEnd,
+        cumulativeDrivingTime: 0
     });
 };
 
@@ -122,7 +123,8 @@ export const getAllDriversService = async () => {
                 isAvailable: true,
                 shift: DriverShift.MORNING,
                 shiftStart: now,
-                shiftEnd: shiftEnd
+                shiftEnd: shiftEnd,
+                cumulativeDrivingTime: 0
             })
         ));
     }
@@ -140,7 +142,7 @@ export const deleteDriverService = async (
         throw new AppError("Driver profile not found", 404);
     }
 
-    // Authorization check: Admin/Manager or the Driver themselves
+    
     const isOwner = driver.userId.toString() === requesterId;
     const isAdmin = requesterRole === UserRole.ADMIN || requesterRole === UserRole.WAREHOUSE_MANAGER;
 
@@ -148,10 +150,10 @@ export const deleteDriverService = async (
         throw new AppError("You are not authorized to delete this account", 403);
     }
 
-    // Delete associated User account first
+    
     await User.findByIdAndDelete(driver.userId);
 
-    // Delete Driver profile
+    
     await deleteDriverById(id);
 
     return { message: "Driver and associated user account deleted successfully" };

@@ -11,11 +11,11 @@ import { SocketHandlers } from "./services/socket.handlers";
 const startServer = async (): Promise<void> => {
     await connectDatabase();
 
-    // Create HTTP server and integrate Socket.io
+    
     const httpServer = createServer(app);
     initializeSocket(httpServer);
 
-    // Initialize WebSocket event handlers
+    
     const socketHandlers = new SocketHandlers();
     socketHandlers.initialize();
 

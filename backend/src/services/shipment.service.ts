@@ -26,7 +26,8 @@ export const createShipmentService = async (
     origin: string,
     destination: string,
     weight: number,
-    volume: number
+    volume: number,
+    slaTier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" = "BRONZE"
 ) => {
     const existing = await findShipmentByTrackingId(
         trackingId
@@ -41,6 +42,25 @@ export const createShipmentService = async (
             ? ShipmentStatus.RECEIVED
             : ShipmentStatus.PACKED;
 
+    
+    const now = new Date();
+    const deadline = new Date(now);
+    switch (slaTier) {
+        case "PLATINUM":
+            deadline.setHours(now.getHours() + 4);
+            break;
+        case "GOLD":
+            deadline.setHours(now.getHours() + 12);
+            break;
+        case "SILVER":
+            deadline.setHours(now.getHours() + 24);
+            break;
+        case "BRONZE":
+        default:
+            deadline.setHours(now.getHours() + 48);
+            break;
+    }
+
     return createShipment({
         trackingId,
         sku,
@@ -53,6 +73,8 @@ export const createShipmentService = async (
         destination,
         weight,
         volume,
+        slaTier,
+        slaDeadline: deadline,
         locationHistory: [],
         statusHistory: [{
             status,
@@ -123,4 +145,54 @@ export const acceptShipmentService = async (
     await shipment.save();
 
     return shipment;
+};
+
+
+export const splitShipmentService = async (
+    id: string,
+    splits: { quantity: number; zone: string }[]
+): Promise<IShipment[]> => {
+    const parent = await findShipmentById(id);
+    if (!parent) throw new AppError("Parent shipment not found", 404);
+
+    const totalSplitQuantity = splits.reduce((sum, s) => sum + s.quantity, 0);
+    if (totalSplitQuantity > parent.quantity) {
+        throw new AppError("Split quantity exceeds parent shipment quantity", 400);
+    }
+
+    const newShipments: IShipment[] = [];
+
+    for (const split of splits) {
+        const trackingId = `${parent.trackingId}-S${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+
+        const newShipment = await createShipment({
+            ...parent.toObject(),
+            _id: undefined,
+            trackingId,
+            quantity: split.quantity,
+            zone: split.zone,
+            status: ShipmentStatus.PACKED,
+            statusHistory: [{
+                status: ShipmentStatus.PACKED,
+                timestamp: new Date(),
+                notes: `Split from parent shipment ${parent.trackingId}`
+            }]
+        });
+        newShipments.push(newShipment);
+    }
+
+    
+    if (totalSplitQuantity === parent.quantity) {
+        await parent.deleteOne();
+    } else {
+        parent.quantity -= totalSplitQuantity;
+        parent.statusHistory.push({
+            status: parent.status,
+            timestamp: new Date(),
+            notes: `Reduced quantity by ${totalSplitQuantity} due to split`
+        });
+        await parent.save();
+    }
+
+    return newShipments;
 };

@@ -2,7 +2,8 @@ import { createUser, findUserByEmail, findUserById, updateUserVerification } fro
 import {
     saveRefreshToken,
     findRefreshToken,
-    deleteRefreshToken
+    deleteRefreshToken,
+    updateRefreshToken
 } from "../repositories/refreshToken.repository";
 import { IUser } from "../models/user.model";
 import { hashPassword, comparePassword } from "../utils/password";
@@ -18,7 +19,7 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "../utils/email.util";
 import { User } from "../models/user.model";
 
-import { createDriver } from "../repositories/driver.repository";
+import { createDriver, findDriverByUserId } from "../repositories/driver.repository";
 import { DriverShift } from "../models/driver.model";
 
 export const registerService = async (
@@ -61,7 +62,8 @@ export const registerService = async (
             isAvailable: false,
             shift: DriverShift.MORNING,
             shiftStart: now,
-            shiftEnd: shiftEnd
+            shiftEnd: shiftEnd,
+            cumulativeDrivingTime: 0
         });
     }
 
@@ -95,10 +97,28 @@ export const loginService = async (
 
     const payload = {
         userId: user._id.toString(),
-        role: user.role
+        role: user.role,
+        version: 0
     };
 
-    const accessToken = generateAccessToken(payload);
+    let expiresIn: string | number = "15m";
+    if (user.role === UserRole.DRIVER) {
+        const driver = await findDriverByUserId(user._id.toString());
+        if (driver && driver.shiftEnd) {
+            const remainingShiftTimeMs = driver.shiftEnd.getTime() - Date.now();
+            if (remainingShiftTimeMs > 0) {
+                
+                expiresIn = Math.floor(remainingShiftTimeMs / 1000);
+            } else {
+                
+                
+                
+                throw new AppError("Your shift has already ended.", 403);
+            }
+        }
+    }
+
+    const accessToken = generateAccessToken(payload, expiresIn);
     const refreshToken = generateRefreshToken(payload);
 
     await deleteRefreshToken(user._id.toString());
@@ -110,7 +130,8 @@ export const loginService = async (
     await saveRefreshToken(
         user._id.toString(),
         refreshToken,
-        expiresAt
+        expiresAt,
+        0
     );
 
     return {
@@ -130,11 +151,18 @@ export const refreshTokenService = async (
     token: string
 ) => {
     const payload = verifyRefreshToken(token);
+    const tokenVersion = payload.version || 0;
 
     const stored = await findRefreshToken(payload.userId);
 
     if (!stored) {
         throw new AppError("Invalid refresh token", 401);
+    }
+
+    
+    if (stored.version > tokenVersion) {
+        await deleteRefreshToken(payload.userId);
+        throw new AppError("Refresh token has been reused. All sessions invalidated.", 403);
     }
 
     const isValid = await bcrypt.compare(
@@ -146,19 +174,35 @@ export const refreshTokenService = async (
         throw new AppError("Invalid refresh token", 401);
     }
 
-    await deleteRefreshToken(payload.userId);
+    let expiresIn: string | number = "15m";
+    if (payload.role === UserRole.DRIVER) {
+        const driver = await findDriverByUserId(payload.userId);
+        if (driver && driver.shiftEnd) {
+            const remainingShiftTimeMs = driver.shiftEnd.getTime() - Date.now();
+            if (remainingShiftTimeMs > 0) {
+                expiresIn = Math.floor(remainingShiftTimeMs / 1000);
+            } else {
+                throw new AppError("Your shift has ended. Token cannot be refreshed.", 403);
+            }
+        }
+    }
 
-    const newAccess = generateAccessToken(payload);
-    const newRefresh = generateRefreshToken(payload);
+    const newVersion = tokenVersion + 1;
+    const newPayload = { ...payload, version: newVersion };
+
+    const newAccess = generateAccessToken(newPayload, expiresIn);
+    const newRefresh = generateRefreshToken(newPayload);
 
     const expiresAt = new Date(
         Date.now() + 7 * 24 * 60 * 60 * 1000
     );
 
-    await saveRefreshToken(
+    const { updateRefreshToken: updateToken } = await import("../repositories/refreshToken.repository");
+    await updateToken(
         payload.userId,
         newRefresh,
-        expiresAt
+        expiresAt,
+        newVersion
     );
 
     const user = await findUserById(payload.userId);

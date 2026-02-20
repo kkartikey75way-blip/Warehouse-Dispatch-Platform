@@ -4,6 +4,7 @@ export interface IRefreshToken extends Document {
     userId: Types.ObjectId;
     tokenHash: string;
     expiresAt: Date;
+    version: number;
 }
 
 const refreshTokenSchema = new Schema<IRefreshToken>({
@@ -20,6 +21,10 @@ const refreshTokenSchema = new Schema<IRefreshToken>({
     expiresAt: {
         type: Date,
         required: true
+    },
+    version: {
+        type: Number,
+        default: 0
     }
 });
 

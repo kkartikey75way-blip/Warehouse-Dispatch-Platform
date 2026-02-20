@@ -28,14 +28,14 @@ export interface TrackingData {
     estimatedDeliveryTime?: Date | undefined;
 }
 
-// WebSocket event types
+
 export enum SocketEvents {
-    // Client -> Server
+    
     SUBSCRIBE_SHIPMENT = 'subscribe:shipment',
     UNSUBSCRIBE_SHIPMENT = 'unsubscribe:shipment',
     DRIVER_LOCATION_UPDATE = 'driver:location',
 
-    // Server -> Client
+    
     SHIPMENT_LOCATION_UPDATE = 'shipment:location',
     SHIPMENT_STATUS_UPDATE = 'shipment:status',
     CONNECTION_ERROR = 'connection:error',

@@ -2,7 +2,7 @@ import { useGetKpiDashboardQuery } from "../../services/analyticsApi";
 import { useAppSelector } from "../../store/hooks";
 import { Link } from "react-router-dom";
 import Card from "../../components/Card";
-import { Icons } from "../../components/IconRegistry";
+import { Icons } from "../../components/Icons";
 import DriverHome from "./DriverHome";
 
 const HomePage = () => {
@@ -63,14 +63,14 @@ const HomePage = () => {
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-12 pb-24">
-            {/* Hero Section */}
+            {}
             <div className="relative overflow-hidden rounded-[3.5rem] bg-slate-950 p-12 md:p-16 text-white group shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
-                {/* Animated Background Elements */}
+                {}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,oklch(0.6_0.18_250/_0.15),transparent_50%)]" />
                 <div className="absolute -right-20 -top-20 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[140px] opacity-40 group-hover:opacity-60 transition-all duration-1000" />
                 <div className="absolute left-1/4 -bottom-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px]" />
 
-                {/* Grid Pattern Overlay */}
+                {}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
@@ -113,7 +113,7 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {/* Operational Hub */}
+            {}
             <section className="space-y-12">
                 <div className="flex items-end justify-between px-6">
                     <div>
@@ -164,7 +164,7 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {/* Performance Insights */}
+            {}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 p-2">
                 <Card className="lg:col-span-2 p-10 border-none shadow-[0_30px_70px_-20px_rgba(0,0,0,0.1)] glass relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-12 relative z-10">

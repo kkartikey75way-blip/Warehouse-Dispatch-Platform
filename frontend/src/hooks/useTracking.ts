@@ -20,15 +20,15 @@ export const useShipmentTracking = (shipmentId: string | null) => {
     const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<string | null>(null);
     const [latestStatus, setLatestStatus] = useState<StatusHistoryEntry | null>(null);
 
-    // Subscribe to shipment updates
+    
     useEffect(() => {
         if (!socket || !isConnected || !shipmentId) return;
 
-        // Subscribe to this shipment
+        
         socket.emit('subscribe:shipment', shipmentId);
         console.log(`Subscribed to shipment: ${shipmentId}`);
 
-        // Listen for location updates
+        
         const handleLocationUpdate = (data: LocationUpdatePayload) => {
             if (data.shipmentId === shipmentId) {
                 setCurrentLocation(data.location);
@@ -38,7 +38,7 @@ export const useShipmentTracking = (shipmentId: string | null) => {
             }
         };
 
-        // Listen for status updates
+        
         const handleStatusUpdate = (data: StatusUpdatePayload) => {
             if (data.shipmentId === shipmentId) {
                 setLatestStatus({
@@ -51,7 +51,7 @@ export const useShipmentTracking = (shipmentId: string | null) => {
         socket.on('shipment:location', handleLocationUpdate);
         socket.on('shipment:status', handleStatusUpdate);
 
-        // Cleanup
+        
         return () => {
             socket.emit('unsubscribe:shipment', shipmentId);
             socket.off('shipment:location', handleLocationUpdate);
@@ -68,7 +68,7 @@ export const useShipmentTracking = (shipmentId: string | null) => {
     };
 };
 
-// Hook for driver to send location updates
+
 export const useDriverLocation = () => {
     const { socket, isConnected } = useSocket();
 

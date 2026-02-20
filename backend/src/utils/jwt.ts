@@ -1,17 +1,20 @@
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { env } from "../config/env";
 
-interface JwtPayload {
+interface JwtPayload extends jwt.JwtPayload {
     userId: string;
     role: string;
+    version?: number;
 }
 
 export const generateAccessToken = (
-    payload: JwtPayload
+    payload: JwtPayload,
+    expiresIn: string | number = "15m"
 ): string => {
-    return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-        expiresIn: "15m"
-    });
+    const options = {
+        expiresIn: expiresIn as unknown as SignOptions["expiresIn"]
+    } as SignOptions;
+    return jwt.sign(payload, env.JWT_ACCESS_SECRET, options);
 };
 
 export const generateRefreshToken = (

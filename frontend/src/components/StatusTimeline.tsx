@@ -76,7 +76,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ statusHistory, currentS
             </p>
 
             <div className="relative">
-                {/* Vertical line */}
+                {}
                 <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-slate-100" />
 
                 {statusOrder.map((status) => {
@@ -88,7 +88,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ statusHistory, currentS
 
                     return (
                         <div key={status} className="relative flex gap-4 pb-6 last:pb-0">
-                            {/* Icon circle */}
+                            {}
                             <div className={`relative z-10 flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${completed
                                 ? 'bg-primary border-primary shadow-lg shadow-primary/20'
                                 : 'bg-white border-slate-200'
@@ -98,7 +98,7 @@ const StatusTimeline: React.FC<StatusTimelineProps> = ({ statusHistory, currentS
                                 </div>
                             </div>
 
-                            {/* Content */}
+                            {}
                             <div className="flex-1 pt-0.5">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>

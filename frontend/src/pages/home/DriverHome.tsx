@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../store/reducers/authReducer";
 import Card from "../../components/Card";
 import ConfirmationModal from "../../components/ConfirmationModal";
-import { Icons } from "../../components/IconRegistry";
+import { Icons } from "../../components/Icons";
 
 import type { User } from "../../store/reducers/authReducer";
 
@@ -62,9 +62,9 @@ const DriverHome = ({ user }: { user: User }) => {
 
     return (
         <div className="max-w-6xl mx-auto space-y-12 pb-24">
-            {/* Driver Hero */}
+            {}
             <div className="relative overflow-hidden rounded-[3.5rem] bg-slate-950 p-12 md:p-16 text-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)] group">
-                {/* Visual Elements */}
+                {}
                 <div className="absolute right-0 top-0 w-2/3 h-full bg-gradient-to-l from-primary/10 via-transparent to-transparent opacity-40" />
                 <div className="absolute -right-20 -top-20 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[140px] opacity-30 group-hover:opacity-50 transition-all duration-1000" />
 
@@ -86,7 +86,7 @@ const DriverHome = ({ user }: { user: User }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {/* Duty Status Card */}
+                {}
                 <Card className="p-12 border-none shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] glass relative overflow-hidden group">
                     <div className={`absolute -right-6 -top-6 w-40 h-40 rounded-full blur-[60px] opacity-10 transition-all duration-1000 ${myDriver.isAvailable ? 'bg-emerald-500' : 'bg-slate-500'}`} />
 
@@ -120,7 +120,7 @@ const DriverHome = ({ user }: { user: User }) => {
                     </button>
                 </Card>
 
-                {/* Capacity Card */}
+                {}
                 <Card className="p-8 border-none shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] glass relative overflow-hidden group">
                     <div className="absolute -right-6 -top-6 w-40 h-40 bg-indigo-500/10 rounded-full blur-[60px] group-hover:opacity-30 transition-all duration-1000" />
 
@@ -156,7 +156,7 @@ const DriverHome = ({ user }: { user: User }) => {
                 </Card>
             </div>
 
-            {/* Quick Actions */}
+            {}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                 <Link to="/deliveries" className="group">
                     <Card className="h-full bg-slate-900 text-white border-none shadow-2xl p-8 hover:shadow-primary/20 hover:-translate-y-2 transition-all duration-500 overflow-hidden relative">
@@ -196,7 +196,7 @@ const DriverHome = ({ user }: { user: User }) => {
                 </Link>
             </div>
 
-            {/* Danger Zone Section */}
+            {}
             <div className="pt-12">
                 <Card className="border-red-500/20 bg-red-500/5 p-8 flex flex-col md:flex-row items-center justify-between gap-6 border-2">
                     <div className="space-y-2 text-center md:text-left">

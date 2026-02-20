@@ -5,9 +5,7 @@ import { SocketHandlers } from '../services/socket.handlers';
 
 const trackingService = new TrackingService();
 
-/**
- * Update shipment location (Driver endpoint)
- */
+
 export const updateLocation = async (req: Request, res: Response): Promise<void> => {
     try {
         const { shipmentId, latitude, longitude, accuracy } = req.body;
@@ -47,9 +45,7 @@ export const updateLocation = async (req: Request, res: Response): Promise<void>
     }
 };
 
-/**
- * Update shipment status with history tracking
- */
+
 export const updateStatus = async (req: Request, res: Response): Promise<void> => {
     try {
         const { shipmentId } = req.params;
@@ -71,7 +67,7 @@ export const updateStatus = async (req: Request, res: Response): Promise<void> =
             return;
         }
 
-        const userId = (req as any).user?.userId;
+        const userId = (req as Request & { user?: { userId: string } }).user?.userId;
         const updatedShipment = await trackingService.updateShipmentStatus(
             shipmentId,
             status,
@@ -79,7 +75,7 @@ export const updateStatus = async (req: Request, res: Response): Promise<void> =
             notes
         );
 
-        // Broadcast status update via WebSocket
+        
         SocketHandlers.broadcastStatusUpdate(
             shipmentId,
             status,
@@ -103,9 +99,7 @@ export const updateStatus = async (req: Request, res: Response): Promise<void> =
     }
 };
 
-/**
- * Get complete tracking information for a shipment
- */
+
 export const getTracking = async (req: Request, res: Response): Promise<void> => {
     try {
         const { shipmentId } = req.params;

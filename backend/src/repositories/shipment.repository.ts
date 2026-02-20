@@ -51,11 +51,21 @@ export const findShipmentByTrackingId = async (
 
 export const updateShipmentStatus = async (
     id: string,
-    status: ShipmentStatus
+    status: ShipmentStatus,
+    notes?: string
 ): Promise<IShipment | null> => {
     return Shipment.findByIdAndUpdate(
         id,
-        { status },
+        {
+            $set: { status },
+            $push: {
+                statusHistory: {
+                    status,
+                    timestamp: new Date(),
+                    notes
+                }
+            }
+        },
         { new: true }
     );
 };
@@ -83,8 +93,17 @@ export const bulkMarkAsDispatched = async (
     await Shipment.updateMany(
         { _id: { $in: shipmentIds } },
         {
-            status: ShipmentStatus.DISPATCHED,
-            assignedDriverId: driverId
+            $set: {
+                status: ShipmentStatus.DISPATCHED,
+                assignedDriverId: driverId
+            },
+            $push: {
+                statusHistory: {
+                    status: ShipmentStatus.DISPATCHED,
+                    timestamp: new Date(),
+                    notes: "Bulk dispatch assignment"
+                }
+            }
         }
     );
 };

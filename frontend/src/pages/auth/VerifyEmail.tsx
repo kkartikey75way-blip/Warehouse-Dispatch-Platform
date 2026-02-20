@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { useVerifyEmailMutation } from "../../services/authApi";
 import Card from "../../components/Card";
-import { Icons } from "../../components/IconRegistry";
+import { Icons } from "../../components/Icons";
 
 const VerifyEmail = () => {
     const [searchParams] = useSearchParams();

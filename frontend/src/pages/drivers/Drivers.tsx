@@ -86,7 +86,7 @@ const DriversPage = () => {
 
                     return (
                         <Card key={driver._id} className="group relative overflow-hidden p-0 border-none shadow-2xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 glass">
-                            {/* Decorative background element */}
+                            {}
                             <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-20 transition-all duration-700 group-hover:scale-150 ${driver.isAvailable ? 'bg-emerald-500' : 'bg-red-500'}`} />
 
                             <div className="p-8 space-y-8 relative z-10">

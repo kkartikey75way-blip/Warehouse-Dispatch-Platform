@@ -2,13 +2,23 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/reducers/authReducer";
 import type { RootState } from "../store/store";
-import { Icons } from "./IconRegistry";
+import { Icons } from "./Icons";
 import { useGetUnreadCountQuery } from "../services/notificationApi";
 
 interface SidebarProps {
     isCollapsed: boolean;
     setIsCollapsed: (collapsed: boolean) => void;
 }
+
+const allNavItems = [
+    { label: "Home", path: "/home", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher", "driver"] },
+    { label: "Analytics", path: "/analytics", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
+    { label: "Shipments", path: "/shipments", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
+    { label: "Dispatch", path: "/dispatch", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
+    { label: "Deliveries", path: "/deliveries", icon: <Icons.Truck className="w-5 h-5" />, roles: ["driver", "admin", "warehouse_manager", "dispatcher"] },
+    { label: "Drivers", path: "/drivers", icon: <Icons.Truck className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
+    { label: "Alerts", path: "/notifications", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher", "driver"] },
+];
 
 const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
     const dispatch = useDispatch();
@@ -21,16 +31,6 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
         navigate("/login");
     };
 
-    const allNavItems = [
-        { label: "Home", path: "/home", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher", "driver"] },
-        { label: "Analytics", path: "/analytics", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
-        { label: "Shipments", path: "/shipments", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
-        { label: "Dispatch", path: "/dispatch", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
-        { label: "Deliveries", path: "/deliveries", icon: <Icons.Truck className="w-5 h-5" />, roles: ["driver", "admin", "warehouse_manager", "dispatcher"] },
-        { label: "Drivers", path: "/drivers", icon: <Icons.Truck className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
-        { label: "Alerts", path: "/notifications", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher", "driver"] },
-    ];
-
     const navItems = allNavItems.filter(item =>
         !item.roles || (user?.role && item.roles.includes(user.role.toLowerCase()))
     );
@@ -42,7 +42,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
 
     return (
         <aside className={`${isCollapsed ? "w-24" : "w-72"} h-screen flex flex-col bg-surface border-r border-border-subtle fixed left-0 top-0 z-30 transition-all duration-300`}>
-            {/* Logo Section */}
+            {}
             <div className={`p-6 ${isCollapsed ? "px-0 flex flex-col items-center" : "px-8 flex items-center justify-between"} pb-10`}>
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 flex-shrink-0">
@@ -59,24 +59,14 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     className={`p-2 rounded-xl bg-txt-main/5 text-txt-muted hover:text-primary hover:bg-primary/5 transition-all duration-300 ${isCollapsed ? "mt-4" : ""}`}
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                    <Icons.ChevronLeft
                         className={`transition-transform duration-500 ${isCollapsed ? "rotate-180" : ""}`}
-                    >
-                        <path d="m15 18-6-6 6-6" />
-                    </svg>
+                        strokeWidth={3}
+                    />
                 </button>
             </div>
 
-            {/* Navigation Section */}
+            {}
             <nav className={`flex-1 ${isCollapsed ? "px-0 flex flex-col items-center" : "px-4"} flex flex-col gap-1 overflow-y-auto custom-scrollbar`}>
                 {!isCollapsed && (
                     <p className="px-4 text-[10px] font-black tracking-[0.2em] text-txt-muted uppercase mb-3 opacity-50">Operation Console</p>
@@ -108,7 +98,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
                 ))}
             </nav>
 
-            {/* User Profile Section */}
+            {}
             <div className={`p-4 mt-auto ${isCollapsed ? "px-0 flex flex-col items-center" : ""}`}>
                 <div className={`premium-card ${isCollapsed ? "p-2 rounded-xl" : "p-5"} relative overflow-hidden group border-none bg-txt-main/5 transition-all duration-300`}>
                     <div className="relative z-10">

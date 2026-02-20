@@ -4,12 +4,12 @@ import { Icon, type LatLngExpression } from 'leaflet';
 import type { LocationPoint } from '../types';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icons in React-Leaflet
+
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-delete (Icon.Default.prototype as any)._getIconUrl;
+delete (Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 Icon.Default.mergeOptions({
     iconRetinaUrl: markerIcon2x,
     iconUrl: markerIcon,
@@ -24,7 +24,7 @@ interface LiveTrackingMapProps {
     estimatedDeliveryTime?: string;
 }
 
-// Component to auto-center map on location updates
+
 const MapCenterUpdater: React.FC<{ center: LatLngExpression }> = ({ center }) => {
     const map = useMap();
     React.useEffect(() => {
@@ -40,22 +40,22 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
     locationHistory,
     estimatedDeliveryTime
 }) => {
-    // Default coordinates (you can geocode origin/destination in production)
-    const originCoords: LatLngExpression = [28.7041, 77.1025]; // Delhi
-    const destinationCoords: LatLngExpression = [19.0760, 72.8777]; // Mumbai
+    
+    const originCoords: LatLngExpression = [28.7041, 77.1025]; 
+    const destinationCoords: LatLngExpression = [19.0760, 72.8777]; 
 
-    // Use current location or default to origin
+    
     const mapCenter: LatLngExpression = currentLocation
         ? [currentLocation.latitude, currentLocation.longitude]
         : originCoords;
 
-    // Create polyline from location history
+    
     const pathCoordinates: LatLngExpression[] = locationHistory.map(loc => [
         loc.latitude,
         loc.longitude
     ]);
 
-    // Custom icon for current location (driver)
+    
     const driverIcon = new Icon({
         iconUrl: 'data:image/svg+xml;base64,' + btoa(`
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3B82F6" width="32" height="32">
@@ -82,7 +82,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                {/* Origin Marker */}
+                {}
                 <Marker position={originCoords}>
                     <Popup>
                         <div className="text-center">
@@ -92,7 +92,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
                     </Popup>
                 </Marker>
 
-                {/* Destination Marker */}
+                {}
                 <Marker position={destinationCoords}>
                     <Popup>
                         <div className="text-center">
@@ -102,7 +102,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
                     </Popup>
                 </Marker>
 
-                {/* Current Location (Driver) */}
+                {}
                 {currentLocation && (
                     <Marker
                         position={[currentLocation.latitude, currentLocation.longitude]}
@@ -124,7 +124,7 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
                     </Marker>
                 )}
 
-                {/* Route Path */}
+                {}
                 {pathCoordinates.length > 1 && (
                     <Polyline
                         positions={pathCoordinates}
@@ -135,13 +135,13 @@ const LiveTrackingMap: React.FC<LiveTrackingMapProps> = ({
                     />
                 )}
 
-                {/* Auto-center on current location */}
+                {}
                 {currentLocation && (
                     <MapCenterUpdater center={[currentLocation.latitude, currentLocation.longitude]} />
                 )}
             </MapContainer>
 
-            {/* Live indicator badge */}
+            {}
             {currentLocation && (
                 <div className="absolute top-4 right-4 z-[1000] bg-white px-4 py-2 rounded-xl shadow-lg border border-slate-200 flex items-center gap-2">
                     <div className="relative flex items-center justify-center">

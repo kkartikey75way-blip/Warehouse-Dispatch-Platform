@@ -27,12 +27,12 @@ const PerformanceChart = ({ title, data }: PerformanceChartProps) => {
 
             <div className="h-48 relative mt-4">
                 <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    {/* Grid Lines */}
+                    {}
                     {[0, 25, 50, 75, 100].map(val => (
                         <line key={val} x1="0" y1={val} x2="100" y2={val} stroke="#f1f5f9" strokeWidth="0.5" />
                     ))}
 
-                    {/* Area Gradient Fill */}
+                    {}
                     <defs>
                         <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
@@ -41,7 +41,7 @@ const PerformanceChart = ({ title, data }: PerformanceChartProps) => {
                     </defs>
                     <polyline points={areaPoints} fill="url(#chartGradient)" />
 
-                    {/* Main Line */}
+                    {}
                     <polyline
                         points={points}
                         fill="none"
@@ -51,7 +51,7 @@ const PerformanceChart = ({ title, data }: PerformanceChartProps) => {
                         strokeLinejoin="round"
                     />
 
-                    {/* Data Points */}
+                    {}
                     {data.map((d, i) => (
                         <circle
                             key={i}

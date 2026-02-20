@@ -159,7 +159,7 @@ const AnalyticsPage = () => {
                                 <div className="h-full bg-primary shadow-lg shadow-primary/40" style={{ width: `${dashboard.performanceScore}%` }} />
                             </div>
                         </div>
-                        {/* Abstract background */}
+                        {}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/30 transition-all duration-700" />
                     </Card>
                 </div>

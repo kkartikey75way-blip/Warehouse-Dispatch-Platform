@@ -17,7 +17,7 @@ const TopBar = () => {
             </div>
 
             <div className="flex items-center gap-6 relative z-10">
-                {/* Status Indicator */}
+                {}
                 <div className="hidden lg:flex items-center gap-4 px-5 py-2.5 bg-txt-main/5 rounded-xl border border-border-subtle/50 transition-all hover:bg-txt-main/10 active:scale-95 cursor-pointer">
                     <div className="relative flex items-center justify-center">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute opacity-40" />
@@ -28,7 +28,7 @@ const TopBar = () => {
 
                 <div className="h-10 w-px bg-border-subtle hidden sm:block" />
 
-                {/* User Profile Summary */}
+                {}
                 <div className="group flex items-center gap-4 cursor-pointer hover:bg-txt-main/5 p-2 -m-2 rounded-2xl transition-all duration-300">
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-black text-txt-main leading-none group-hover:text-primary transition-colors">{user?.email?.split('@')[0]}</p>

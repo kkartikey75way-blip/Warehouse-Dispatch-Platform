@@ -32,7 +32,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     useEffect(() => {
         if (!accessToken) {
-            // Disconnect socket if no token
+            
             if (socket) {
                 socket.disconnect();
                 setSocket(null);
@@ -41,7 +41,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
             return;
         }
 
-        // Initialize socket connection
+        
         const socketUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const newSocket = io(socketUrl, {
             auth: {

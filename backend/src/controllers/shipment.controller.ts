@@ -25,7 +25,7 @@ export const createShipmentController = async (
     req: Request,
     res: Response
 ): Promise<void> => {
-    const { trackingId, sku, quantity, type, priority, zone, origin, destination, weight, volume } =
+    const { trackingId, sku, quantity, type, priority, zone, origin, destination, weight, volume, slaTier } =
         req.body;
 
     const shipment = await createShipmentService(
@@ -38,7 +38,8 @@ export const createShipmentController = async (
         origin,
         destination,
         weight,
-        volume
+        volume,
+        slaTier
     );
 
     res.status(201).json({
@@ -85,6 +86,30 @@ export const acceptShipmentController = async (
     res.status(200).json({
         success: true,
         data: shipment
+    });
+};
+
+export const splitShipmentController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { id } = req.params as { id: string };
+    const { splits } = req.body as { splits: { quantity: number; zone: string }[] };
+
+    if (!id) {
+        throw new AppError("Shipment ID is required", 400);
+    }
+
+    if (!splits || !splits.length) {
+        throw new AppError("Splits data is required", 400);
+    }
+
+    const { splitShipmentService } = await import("../services/shipment.service");
+    const newShipments = await splitShipmentService(id, splits);
+
+    res.status(200).json({
+        success: true,
+        data: newShipments
     });
 };
 

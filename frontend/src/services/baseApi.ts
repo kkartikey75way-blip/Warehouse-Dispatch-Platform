@@ -23,7 +23,7 @@ const baseQueryWithReauth: BaseQueryFn<
     let result = await baseQuery(args, api, extraOptions);
 
     if (result.error && result.error.status === 401) {
-        
+
         const refreshResult = await baseQuery(
             {
                 url: "/auth/refresh",
@@ -36,15 +36,25 @@ const baseQueryWithReauth: BaseQueryFn<
 
         if (refreshResult.data) {
             const data = refreshResult.data as { newAccess: string; newRefresh: string; user: User };
-            
+
             api.dispatch(setCredentials({ user: data.user, token: data.newAccess }));
             localStorage.setItem("refreshToken", data.newRefresh);
-            
+
             result = await baseQuery(args, api, extraOptions);
         } else {
             api.dispatch(logout());
         }
     }
+
+    if (result.error && result.error.status !== 401) {
+        const { toast } = await import("react-hot-toast");
+        interface ApiError {
+            message?: string;
+        }
+        const errorMessage = (result.error.data as ApiError)?.message || "An unexpected error occurred";
+        toast.error(errorMessage);
+    }
+
     return result;
 };
 
@@ -53,7 +63,7 @@ export const baseApi = createApi({
     baseQuery: baseQueryWithReauth,
     endpoints: () => ({}),
     tagTypes: ["Shipment", "Driver", "Dispatch", "Notification", "Analytics"],
-    keepUnusedDataFor: 0, 
+    keepUnusedDataFor: 0,
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,
     refetchOnReconnect: true

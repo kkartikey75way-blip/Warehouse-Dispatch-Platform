@@ -32,7 +32,7 @@ const AnalyticsChart = ({ title, data }: AnalyticsChartProps) => {
             </div>
 
             <div className="h-72 relative pt-8">
-                {/* Background Grid Lines */}
+                {}
                 <div className="absolute inset-0 flex flex-col justify-between pt-8 pb-12 pointer-events-none opacity-40">
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="w-full h-px bg-slate-100 border-t border-dashed border-slate-200" />
@@ -42,7 +42,7 @@ const AnalyticsChart = ({ title, data }: AnalyticsChartProps) => {
                 <div className="relative h-full flex items-end justify-between gap-6 px-2">
                     {data.map((item, idx) => {
                         const val = item.utilization ?? item.deliveries ?? 0;
-                        const height = Math.max(val, 5); // Minimum height for visibility
+                        const height = Math.max(val, 5); 
 
                         return (
                             <div key={idx} className="flex-1 flex flex-col items-center gap-4 group/bar relative h-full">
@@ -52,10 +52,10 @@ const AnalyticsChart = ({ title, data }: AnalyticsChartProps) => {
                                             className="w-full bg-gradient-to-t from-indigo-600 via-primary to-blue-400 rounded-t-2xl shadow-2xl shadow-primary/20 transition-all duration-700 ease-out group-hover/bar:scale-x-105 group-hover/bar:brightness-110 relative"
                                             style={{ height: `${height}%` }}
                                         >
-                                            {/* Glossy overlay */}
+                                            {}
                                             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent rounded-t-2xl" />
 
-                                            {/* Hover Tooltip */}
+                                            {}
                                             <div className="absolute -top-14 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-all duration-300 pointer-events-none scale-90 group-hover/bar:scale-100 z-30">
                                                 <div className="bg-slate-900 text-white p-3 rounded-xl shadow-2xl relative">
                                                     <p className="text-[8px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">Current Load</p>

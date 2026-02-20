@@ -9,7 +9,7 @@ import { useAppSelector } from "../../store/hooks";
 import DeliveriesHeader from "./components/DeliveriesHeader";
 import DeliveryCard from "./components/DeliveryCard";
 import toast from "react-hot-toast";
-import { Icons } from "../../components/IconRegistry";
+import { Icons } from "../../components/Icons";
 
 const DeliveriesPage = () => {
     const { user } = useAppSelector((state) => state.auth);

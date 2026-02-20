@@ -65,6 +65,17 @@ export const reduceDriverLoadAndCapacity = async (
         { new: true }
     );
 };
+export const incrementDriverDrivingTime = async (
+    id: string,
+    minutes: number
+): Promise<IDriver | null> => {
+    return Driver.findByIdAndUpdate(
+        id,
+        { $inc: { cumulativeDrivingTime: minutes } },
+        { new: true }
+    );
+};
+
 export const deleteDriverById = async (id: string): Promise<IDriver | null> => {
     return Driver.findByIdAndDelete(id);
 };

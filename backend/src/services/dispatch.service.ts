@@ -17,15 +17,30 @@ export const getDispatchesService = async () => {
     );
 };
 
+import { incrementDriverDrivingTime } from "../repositories/driver.repository";
+
 eventBus.on("delivery_completed", async ({ driverId, shipmentId }) => {
     await updateDispatchStatus(shipmentId, ShipmentStatus.DELIVERED);
 
     const shipment = await findShipmentById(shipmentId);
     if (shipment && driverId) {
         await reduceDriverLoadAndCapacity(driverId, shipment.weight);
+
+        
+        const deliveredEntry = shipment.statusHistory.find(h => h.status === ShipmentStatus.DELIVERED);
+        const inTransitEntry = shipment.statusHistory.find(h => h.status === ShipmentStatus.IN_TRANSIT);
+
+        if (deliveredEntry && inTransitEntry) {
+            const drivingTimeMs = deliveredEntry.timestamp.getTime() - inTransitEntry.timestamp.getTime();
+            const drivingMinutes = Math.round(drivingTimeMs / (1000 * 60));
+
+            if (drivingMinutes > 0) {
+                await incrementDriverDrivingTime(driverId, drivingMinutes);
+            }
+        }
     }
 
-    // Clear analytics cache to show updated capacity immediately
+    
     await deleteCache("kpi_dashboard");
 });
 
@@ -57,6 +72,8 @@ export const autoAssignDispatchService = async (): Promise<void> => {
 
         for (const driver of drivers) {
             if (remainingShipments.length === 0) break;
+
+            if (driver.cumulativeDrivingTime >= 480) continue;
 
             const availableCapacity = driver.capacity - driver.currentLoad;
             if (availableCapacity <= 0) continue;
@@ -122,6 +139,11 @@ export const assignBatchToDriverService = async (
     const driver = await Driver.findById(driverId);
     if (!driver) {
         throw new AppError("Driver not found", 404);
+    }
+
+    
+    if (driver.cumulativeDrivingTime >= 480) {
+        throw new AppError("Driver has reached the daily driving limit (8 hours)", 400);
     }
 
     const totalWeight = shipments.reduce((sum, s) => sum + s.weight, 0);

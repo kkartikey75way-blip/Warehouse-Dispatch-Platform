@@ -1,6 +1,6 @@
 import Card from "../../../components/Card";
 import Button from "../../../components/Button";
-import { Icons } from "../../../components/IconRegistry";
+import { Icons } from "../../../components/Icons";
 
 import type { Shipment } from "../../../types";
 
@@ -38,7 +38,7 @@ const DeliveryCard = ({
 
     return (
         <Card className="group relative overflow-hidden p-0 border-none shadow-2xl shadow-slate-200/50 hover:shadow-3xl transition-all duration-500 glass">
-            {/* Background Accent */}
+            {}
             <div className={`absolute top-0 right-0 w-32 h-32 opacity-[0.03] rounded-full -mr-16 -mt-16 pointer-events-none transition-all duration-700 group-hover:scale-150 ${isDelivered ? 'bg-emerald-500' : 'bg-primary'}`} />
 
             <div className="flex flex-col lg:flex-row p-8 gap-8 items-center">

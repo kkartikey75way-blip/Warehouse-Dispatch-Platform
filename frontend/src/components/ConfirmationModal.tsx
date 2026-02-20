@@ -1,4 +1,4 @@
-import { Icons } from "./IconRegistry";
+import { Icons } from "./Icons";
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -54,8 +54,8 @@ const ConfirmationModal = ({
                             onClick={onConfirm}
                             disabled={isLoading}
                             className={`w-full py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl flex items-center justify-center gap-2 ${type === "danger"
-                                    ? "bg-red-500 text-white hover:bg-red-600 shadow-red-500/20"
-                                    : "bg-primary text-white hover:bg-primary/90 shadow-primary/20"
+                                ? "bg-red-500 text-white hover:bg-red-600 shadow-red-500/20"
+                                : "bg-primary text-white hover:bg-primary/90 shadow-primary/20"
                                 }`}
                         >
                             {isLoading ? (

@@ -37,6 +37,9 @@ export interface IShipmentBase {
     locationHistory: LocationPoint[];
     statusHistory: StatusHistoryEntry[];
     estimatedDeliveryTime?: Date;
+    slaTier?: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
+    slaDeadline?: Date;
+    isEscalated?: boolean;
 }
 
 export interface IShipment extends IShipmentBase, Document {
@@ -49,8 +52,7 @@ const shipmentSchema = new Schema<IShipment>(
         trackingId: {
             type: String,
             required: true,
-            unique: true,
-            index: true
+            unique: true
         },
         sku: {
             type: String,
@@ -74,8 +76,7 @@ const shipmentSchema = new Schema<IShipment>(
         },
         zone: {
             type: String,
-            required: true,
-            index: true
+            required: true
         },
         origin: {
             type: String,
@@ -96,8 +97,7 @@ const shipmentSchema = new Schema<IShipment>(
         status: {
             type: String,
             enum: Object.values(ShipmentStatus),
-            default: ShipmentStatus.PACKED,
-            index: true
+            default: ShipmentStatus.PACKED
         },
         assignedDriverId: {
             type: Schema.Types.ObjectId,
@@ -144,13 +144,27 @@ const shipmentSchema = new Schema<IShipment>(
         },
         estimatedDeliveryTime: {
             type: Date
+        },
+        slaTier: {
+            type: String,
+            enum: ["BRONZE", "SILVER", "GOLD", "PLATINUM"],
+            default: "BRONZE"
+        },
+        slaDeadline: {
+            type: Date
+        },
+        isEscalated: {
+            type: Boolean,
+            default: false
         }
     },
     { timestamps: true }
 );
 
 
-shipmentSchema.index({ status: 1, priority: -1, createdAt: 1 });
-shipmentSchema.index({ zone: 1, status: 1 });
+shipmentSchema.index({ status: 1, priority: -1, createdAt: -1 });
+shipmentSchema.index({ zone: 1, status: 1, priority: -1 });
+shipmentSchema.index({ assignedDriverId: 1, status: 1 });
+shipmentSchema.index({ isEscalated: 1 });
 
 export const Shipment = model<IShipment>("Shipment", shipmentSchema);

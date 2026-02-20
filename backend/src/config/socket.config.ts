@@ -16,7 +16,7 @@ export const initializeSocket = (httpServer: HTTPServer): SocketIOServer => {
         pingInterval: 25000,
     });
 
-    // Authentication middleware
+    
     io.use((socket: Socket, next) => {
         const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
 

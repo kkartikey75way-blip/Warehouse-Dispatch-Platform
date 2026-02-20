@@ -8,26 +8,25 @@ export const errorMiddleware = (
     res: Response,
     _next: NextFunction
 ): void => {
-    if (err instanceof AppError) {
-        logger.warn({
-            message: err.message,
-            statusCode: err.statusCode
-        });
+    const statusCode = err instanceof AppError ? err.statusCode : 500;
+    const message = err instanceof AppError ? err.message : "Internal Server Error";
 
-        res.status(err.statusCode).json({
-            success: false,
-            message: err.message
+    if (statusCode >= 500) {
+        logger.error({
+            message: "Unhandled error",
+            error: err,
+            stack: err instanceof Error ? err.stack : undefined
         });
-        return;
+    } else {
+        logger.warn({
+            message,
+            statusCode
+        });
     }
 
-    logger.error({
-        message: "Unhandled error",
-        error: err
-    });
-
-    res.status(500).json({
+    res.status(statusCode).json({
         success: false,
-        message: "Internal Server Error"
+        message,
+        stack: process.env.NODE_ENV === "development" && err instanceof Error ? err.stack : undefined
     });
 };

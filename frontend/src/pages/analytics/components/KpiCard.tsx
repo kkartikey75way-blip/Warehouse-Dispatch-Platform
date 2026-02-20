@@ -22,7 +22,7 @@ const KpiCard = ({ title, value, description, icon, color, trend, trendType }: K
 
     return (
         <Card className="p-6 relative overflow-hidden group transition-all hover:shadow-2xl hover:-translate-y-1 border-none glass">
-            {/* Background Decorative Blob */}
+            {}
             <div className={`absolute right-0 top-0 w-32 h-32 rounded-full -mr-16 -mt-16 transition-transform duration-700 group-hover:scale-150 blur-3xl ${classes.split(' ')[0]}`} />
 
             <div className="relative z-10 flex flex-col h-full">

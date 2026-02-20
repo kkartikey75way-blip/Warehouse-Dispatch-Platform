@@ -6,24 +6,24 @@ import * as trackingController from '../controllers/tracking.controller';
 
 const router = Router();
 
-// All routes require authentication
+
 router.use(protect);
 
-// Driver updates location
+
 router.post(
     '/location',
     authorize(UserRole.DRIVER),
     trackingController.updateLocation
 );
 
-// Update shipment status (Manager/Admin)
+
 router.patch(
     '/status/:shipmentId',
     authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN),
     trackingController.updateStatus
 );
 
-// Get tracking information (All authenticated users)
+
 router.get(
     '/:shipmentId',
     trackingController.getTracking

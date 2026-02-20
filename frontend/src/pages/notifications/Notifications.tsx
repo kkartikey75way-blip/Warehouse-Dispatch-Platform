@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useGetNotificationsQuery, useMarkNotificationReadMutation, useMarkAllAsReadMutation } from "../../services/notificationApi";
 import Card from "../../components/Card";
-import { Icons } from "../../components/IconRegistry";
+import { Icons } from "../../components/Icons";
 
 const NotificationsPage = () => {
     const { data: notifications, isLoading } = useGetNotificationsQuery();

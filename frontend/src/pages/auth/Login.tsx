@@ -23,7 +23,7 @@ const LoginPage = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Redirect to landing if the page was reloaded or accessed via back button (POP)
+        
         if (navType === "POP") {
             navigate("/", { replace: true });
         }
