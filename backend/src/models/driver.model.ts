@@ -11,10 +11,13 @@ export interface IDriverInput {
     zone: string;
     capacity: number;
     currentLoad: number;
+    volumeCapacity?: number;
+    currentVolume?: number;
     isAvailable: boolean;
     shift: DriverShift;
     shiftStart: Date;
     shiftEnd: Date;
+    shiftTokenIssuedAt?: Date;
     cumulativeDrivingTime: number;
     continuousDrivingTime: number;
     lastBreakTime?: Date;
@@ -49,6 +52,14 @@ const driverSchema = new Schema<IDriver>(
             type: Number,
             default: 0
         },
+        volumeCapacity: {
+            type: Number,
+            default: 20
+        },
+        currentVolume: {
+            type: Number,
+            default: 0
+        },
         isAvailable: {
             type: Boolean,
             default: true,
@@ -67,6 +78,9 @@ const driverSchema = new Schema<IDriver>(
         shiftEnd: {
             type: Date,
             required: true
+        },
+        shiftTokenIssuedAt: {
+            type: Date
         },
         cumulativeDrivingTime: {
             type: Number,

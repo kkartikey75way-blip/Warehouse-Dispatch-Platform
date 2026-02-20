@@ -1,33 +1,28 @@
-import { config } from "dotenv";
 import { z } from "zod";
+import dotenv from "dotenv";
 
-config();
+dotenv.config();
 
 const envSchema = z.object({
-    PORT: z.string().min(1),
-    MONGO_URI: z.string().min(1),
-    JWT_ACCESS_SECRET: z.string().min(10),
-    JWT_REFRESH_SECRET: z.string().min(10),
-    REDIS_URL: z.string().min(1),
-    FRONTEND_URL: z.string().min(1),
-    EMAIL_HOST: z.string().min(1),
-    EMAIL_PORT: z.string().min(1),
-    EMAIL_USER: z.string().min(1),
-    EMAIL_PASS: z.string().min(1),
-    EMAIL_FROM: z.string().min(1)
+    NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    PORT: z.string().default("5000"),
+    MONGO_URI: z.string(),
+    JWT_ACCESS_SECRET: z.string(),
+    JWT_REFRESH_SECRET: z.string(),
+    REDIS_URL: z.string().default("redis://localhost:6379"),
+    FRONTEND_URL: z.string().default("http://localhost:3000"),
+    BACKEND_URL: z.string().default("http://localhost:5000"),
+    EMAIL_HOST: z.string(),
+    EMAIL_PORT: z.string(),
+    EMAIL_USER: z.string(),
+    EMAIL_PASS: z.string(),
+    EMAIL_FROM: z.string()
 });
 
-const envVars = {
-    ...process.env,
-    MONGO_URI: process.env.MONGO_URI || process.env.MONGO_URI_DOCKER,
-    REDIS_URL: process.env.REDIS_URL || process.env.REDIS_URL_DOCKER
-};
+const _env = envSchema.safeParse(process.env);
 
-const parsedEnv = envSchema.safeParse(envVars);
-
-if (!parsedEnv.success) {
-    console.error("Invalid environment variables:", parsedEnv.error.format());
-    throw new Error("Invalid environment variables");
+if (!_env.success) {
+    process.exit(1);
 }
 
-export const env = parsedEnv.data;
+export const env = _env.data;

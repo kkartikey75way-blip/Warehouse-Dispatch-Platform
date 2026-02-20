@@ -237,6 +237,48 @@ export const refreshTokenService = async (
     };
 };
 
+
+export const renewShiftTokenService = async (
+    driverId: string,       // Driver._id
+    userId: string,         // User._id (for token payload)
+    newShiftEnd: Date
+) => {
+    const driver = await findDriverByUserId(userId);
+
+    if (!driver) {
+        throw new AppError("Driver not found", 404);
+    }
+
+    // Update shift timing
+    await updateDriver(driver._id.toString(), {
+        shiftEnd: newShiftEnd,
+        shiftTokenIssuedAt: new Date()
+    });
+
+    const remainingMs = newShiftEnd.getTime() - Date.now();
+    if (remainingMs <= 0) {
+        throw new AppError("New shift end is in the past", 400);
+    }
+
+    const user = await findUserById(userId);
+    if (!user) throw new AppError("User not found", 404);
+
+    const payload = {
+        userId,
+        role: user.role,
+        version: 0
+    };
+
+    const expiresIn = Math.floor(remainingMs / 1000);
+    const newAccessToken = generateAccessToken(payload, expiresIn);
+
+    return {
+        accessToken: newAccessToken,
+        shiftEnd: newShiftEnd,
+        expiresIn
+    };
+};
+
 export const verifyEmailService = async (token: string) => {
     const user = await User.findOne({ verificationToken: token });
 

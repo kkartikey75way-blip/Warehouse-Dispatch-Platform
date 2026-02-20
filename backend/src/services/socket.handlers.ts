@@ -14,21 +14,14 @@ export class SocketHandlers {
         const io = getIO();
 
         io.on('connection', (socket: Socket) => {
-            console.log(`Client connected: ${socket.id}`);
-
-            
             socket.on(SocketEvents.SUBSCRIBE_SHIPMENT, (shipmentId: string) => {
                 socket.join(`shipment:${shipmentId}`);
-                console.log(`Socket ${socket.id} subscribed to shipment ${shipmentId}`);
             });
 
-            
             socket.on(SocketEvents.UNSUBSCRIBE_SHIPMENT, (shipmentId: string) => {
                 socket.leave(`shipment:${shipmentId}`);
-                console.log(`Socket ${socket.id} unsubscribed from shipment ${shipmentId}`);
             });
 
-            
             socket.on(SocketEvents.DRIVER_LOCATION_UPDATE, async (data: LocationUpdate) => {
                 try {
                     const updatedShipment = await this.trackingService.updateShipmentLocation(
@@ -41,7 +34,6 @@ export class SocketHandlers {
                         }
                     );
 
-                    
                     io.to(`shipment:${data.shipmentId}`).emit(
                         SocketEvents.SHIPMENT_LOCATION_UPDATE,
                         {
@@ -58,13 +50,10 @@ export class SocketHandlers {
                 }
             });
 
-            socket.on('disconnect', () => {
-                console.log(`Client disconnected: ${socket.id}`);
-            });
+            socket.on('disconnect', () => { });
         });
     }
 
-    
     public static broadcastStatusUpdate(shipmentId: string, status: string, timestamp: Date): void {
         const io = getIO();
         io.to(`shipment:${shipmentId}`).emit(SocketEvents.SHIPMENT_STATUS_UPDATE, {

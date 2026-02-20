@@ -3,7 +3,8 @@ import {
     registerController,
     loginController,
     refreshController,
-    verifyEmailController
+    verifyEmailController,
+    renewShiftTokenController
 } from "../controllers/auth.controller";
 import { validate } from "../middlewares/validation.middleware";
 import {
@@ -11,6 +12,9 @@ import {
     loginSchema
 } from "../validators/auth.validator";
 import { authRateLimiter } from "../middlewares/rateLimit.middleware";
+import { protect } from "../middlewares/auth.middleware";
+import { authorize } from "../middlewares/role.middleware";
+import { UserRole } from "../constants/roles";
 
 const router = Router();
 
@@ -36,6 +40,14 @@ router.post(
 router.get(
     "/verify-email",
     verifyEmailController
+);
+
+
+router.post(
+    "/renew-shift-token",
+    protect,
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN),
+    renewShiftTokenController
 );
 
 export default router;

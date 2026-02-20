@@ -3,6 +3,7 @@ import KpiCard from "./components/KpiCard";
 import PerformanceChart from "./components/PerformanceChart";
 import StatusDistribution from "./components/StatusDistribution";
 import AnalyticsChart from "./components/AnalyticsChart";
+import WaterfallChart from "./components/WaterfallChart";
 import { Icons } from "../../components/Icons";
 import Card from "../../components/Card";
 
@@ -110,6 +111,13 @@ const AnalyticsPage = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
+                    {dashboard.causalAnalysis && (
+                        <WaterfallChart
+                            baseline={dashboard.causalAnalysis.baselineOnTimeRate}
+                            current={dashboard.causalAnalysis.currentOnTimeRate}
+                            steps={dashboard.causalAnalysis.steps}
+                        />
+                    )}
                     <PerformanceChart title="Volume Trends" data={dashboard.trends || []} />
 
                     <Card title="Operational Log" className="p-8 border-none shadow-xl glass">
@@ -159,7 +167,7 @@ const AnalyticsPage = () => {
                                 <div className="h-full bg-primary shadow-lg shadow-primary/40" style={{ width: `${dashboard.performanceScore}%` }} />
                             </div>
                         </div>
-                        {}
+                        { }
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-primary/30 transition-all duration-700" />
                     </Card>
                 </div>

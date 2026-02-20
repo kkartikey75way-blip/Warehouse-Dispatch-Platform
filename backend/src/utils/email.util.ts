@@ -1,17 +1,18 @@
 import nodemailer from "nodemailer";
 import { getVerificationEmailTemplate } from "./templates/auth.templates";
 
-export const sendVerificationEmail = async (email: string, token: string) => {
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: Number(process.env.EMAIL_PORT),
-        secure: process.env.EMAIL_PORT === "465",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
+const createTransporter = () => nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT),
+    secure: process.env.EMAIL_PORT === "465",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
+export const sendVerificationEmail = async (email: string, token: string) => {
+    const transporter = createTransporter();
     const verificationUrl = `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/auth/verify-email?token=${token}`;
 
     const mailOptions = {
@@ -23,14 +24,18 @@ export const sendVerificationEmail = async (email: string, token: string) => {
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Verification email sent to: ${email}`);
         return true;
-    } catch (error) {
-        console.error("Error sending verification email:", error);
+    } catch {
+        return false;
+    }
+};
 
-        console.log("-----------------------------------------");
-        console.log(`FALLBACK Verification Link: ${verificationUrl}`);
-        console.log("-----------------------------------------");
+export const sendEmail = async (to: string, subject: string, html: string): Promise<boolean> => {
+    const transporter = createTransporter();
+    try {
+        await transporter.sendMail({ from: process.env.EMAIL_FROM, to, subject, html });
+        return true;
+    } catch {
         return false;
     }
 };

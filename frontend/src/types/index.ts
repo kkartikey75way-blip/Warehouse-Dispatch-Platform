@@ -47,6 +47,21 @@ export interface RecentActivity {
     time: string;
 }
 
+export interface WaterfallStep {
+    category: string;
+    impact: number;
+    description: string;
+    shipmentCount: number;
+}
+
+export interface CausalWaterfall {
+    baselineOnTimeRate: number;
+    currentOnTimeRate: number;
+    totalDelta: number;
+    steps: WaterfallStep[];
+    primaryCause: string;
+}
+
 export interface KpiDashboard {
     onTimeRate: number;
     avgDispatchTime: number;
@@ -60,6 +75,7 @@ export interface KpiDashboard {
     recentActivity: RecentActivity[];
     trends: Array<{ name: string; value: number }>;
     performanceScore: number;
+    causalAnalysis?: CausalWaterfall;
 }
 
 export interface Dispatch {

@@ -36,35 +36,19 @@ export const createShipmentService = async (
     volume: number,
     slaTier: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM" = "BRONZE"
 ) => {
-    const existing = await findShipmentByTrackingId(
-        trackingId
-    );
+    const existing = await findShipmentByTrackingId(trackingId);
+    if (existing) throw new AppError("Tracking ID already exists", 400);
 
-    if (existing) {
-        throw new AppError("Tracking ID already exists", 400);
-    }
-
-    let status: ShipmentStatus =
-        type === ShipmentType.INBOUND
-            ? ShipmentStatus.PENDING
-            : ShipmentStatus.PACKED;
-
+    let status = type === ShipmentType.INBOUND ? ShipmentStatus.PENDING : ShipmentStatus.PACKED;
     const now = new Date();
     const deadline = new Date(now);
+
     switch (slaTier) {
-        case "PLATINUM":
-            deadline.setHours(now.getHours() + 4);
-            break;
-        case "GOLD":
-            deadline.setHours(now.getHours() + 12);
-            break;
-        case "SILVER":
-            deadline.setHours(now.getHours() + 24);
-            break;
+        case "PLATINUM": deadline.setHours(now.getHours() + 4); break;
+        case "GOLD": deadline.setHours(now.getHours() + 12); break;
+        case "SILVER": deadline.setHours(now.getHours() + 24); break;
         case "BRONZE":
-        default:
-            deadline.setHours(now.getHours() + 48);
-            break;
+        default: deadline.setHours(now.getHours() + 48); break;
     }
 
     if (type === ShipmentType.OUTBOUND) {
@@ -72,7 +56,6 @@ export const createShipmentService = async (
         const available = inv ? inv.onHand - inv.reserved : 0;
 
         if (available < quantity) {
-            // Attempt preemption
             const currentPriorityValue = priorityOrder[priority] ?? 99;
             const lowerPriorityShipments = await Shipment.find({
                 sku,
@@ -92,7 +75,6 @@ export const createShipmentService = async (
             }
 
             if (available + releasing >= quantity) {
-                // Execute preemption
                 for (const s of toPreempt) {
                     s.status = ShipmentStatus.PENDING;
                     s.statusHistory.push({
@@ -136,21 +118,11 @@ export const createShipmentService = async (
     });
 };
 
-export const updateShipmentStatusService = async (
-    id: string,
-    status: ShipmentStatus
-) => {
+export const updateShipmentStatusService = async (id: string, status: ShipmentStatus) => {
     const shipment = await findShipmentById(id);
+    if (!shipment) throw new AppError("Shipment not found", 404);
 
-    if (!shipment) {
-        throw new AppError("Shipment not found", 404);
-    }
-
-
-    const validTransitions: Record<
-        ShipmentStatus,
-        ShipmentStatus[]
-    > = {
+    const validTransitions: Record<ShipmentStatus, ShipmentStatus[]> = {
         PENDING: [ShipmentStatus.RECEIVED, ShipmentStatus.DISPUTED],
         RECEIVED: [ShipmentStatus.PACKED],
         PACKED: [ShipmentStatus.DISPATCHED],
@@ -163,24 +135,15 @@ export const updateShipmentStatusService = async (
     };
 
     if (!validTransitions[shipment.status].includes(status)) {
-        throw new AppError(
-            `Invalid status transition from ${shipment.status} to ${status}`,
-            400
-        );
+        throw new AppError(`Invalid status transition from ${shipment.status} to ${status}`, 400);
     }
 
     return updateShipmentStatus(id, status);
 };
 
-export const acceptShipmentService = async (
-    shipmentId: string,
-    driverId: string
-) => {
+export const acceptShipmentService = async (shipmentId: string, driverId: string) => {
     const shipment = await findShipmentById(shipmentId);
-
-    if (!shipment) {
-        throw new AppError("Shipment not found", 404);
-    }
+    if (!shipment) throw new AppError("Shipment not found", 404);
 
     if (shipment.status !== ShipmentStatus.DISPATCHED) {
         throw new AppError("Only dispatched shipments can be accepted", 400);
@@ -201,11 +164,7 @@ export const acceptShipmentService = async (
     return shipment;
 };
 
-
-export const splitShipmentService = async (
-    id: string,
-    splits: { quantity: number; zone: string }[]
-): Promise<IShipment[]> => {
+export const splitShipmentService = async (id: string, splits: { quantity: number; zone: string }[]): Promise<IShipment[]> => {
     const parent = await findShipmentById(id);
     if (!parent) throw new AppError("Parent shipment not found", 404);
 
@@ -215,10 +174,8 @@ export const splitShipmentService = async (
     }
 
     const newShipments: IShipment[] = [];
-
     for (const split of splits) {
         const trackingId = `${parent.trackingId}-S${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-
         const newShipment = await createShipment({
             ...parent.toObject(),
             _id: undefined,
@@ -235,7 +192,6 @@ export const splitShipmentService = async (
         newShipments.push(newShipment);
     }
 
-
     if (totalSplitQuantity === parent.quantity) {
         await parent.deleteOne();
     } else {
@@ -251,11 +207,7 @@ export const splitShipmentService = async (
     return newShipments;
 };
 
-export const blindReceiveShipmentService = async (
-    id: string,
-    actualSku: string,
-    actualQuantity: number
-) => {
+export const blindReceiveShipmentService = async (id: string, actualSku: string, actualQuantity: number) => {
     const shipment = await findShipmentById(id);
     if (!shipment) throw new AppError("Shipment not found", 404);
 
@@ -268,14 +220,9 @@ export const blindReceiveShipmentService = async (
     shipment.actualSku = actualSku;
 
     let discrepancyType: "NONE" | "OVER_SHIPMENT" | "UNDER_SHIPMENT" | "WRONG_SKU" = "NONE";
-
-    if (actualSku !== shipment.sku) {
-        discrepancyType = "WRONG_SKU";
-    } else if (actualQuantity > shipment.quantity) {
-        discrepancyType = "OVER_SHIPMENT";
-    } else if (actualQuantity < shipment.quantity) {
-        discrepancyType = "UNDER_SHIPMENT";
-    }
+    if (actualSku !== shipment.sku) discrepancyType = "WRONG_SKU";
+    else if (actualQuantity > shipment.quantity) discrepancyType = "OVER_SHIPMENT";
+    else if (actualQuantity < shipment.quantity) discrepancyType = "UNDER_SHIPMENT";
 
     if (discrepancyType !== "NONE") {
         shipment.status = ShipmentStatus.DISPUTED;
@@ -292,8 +239,6 @@ export const blindReceiveShipmentService = async (
             timestamp: new Date(),
             notes: "Blind receiving successful: Matches PO"
         });
-
-        // Update Inventory and trigger auto-fulfillment
         await updateStock(shipment.sku, shipment.actualQuantity || shipment.quantity);
         await fulfillPendingOrders(shipment.sku);
     }
@@ -307,7 +252,7 @@ const fulfillPendingOrders = async (sku: string) => {
         sku,
         type: ShipmentType.OUTBOUND,
         status: ShipmentStatus.PENDING
-    }).sort({ priority: 1, createdAt: 1 }); // Process highest priority, then oldest
+    }).sort({ priority: 1, createdAt: 1 });
 
     for (const order of pendingOrders) {
         const inv = await getInventoryBySku(sku);

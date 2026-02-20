@@ -19,6 +19,9 @@ import analyticsRoutes from "./routes/analytics.routes";
 import notificationRoutes from "./routes/notification.routes";
 import exportRoutes from "./routes/export.routes";
 import trackingRoutes from "./routes/tracking.routes";
+import warehouseRoutes from "./routes/warehouse.routes";
+import podRoutes from "./routes/proofOfDelivery.routes";
+import schedulerRoutes from "./routes/scheduler.routes";
 import { attachRequestId } from "./middlewares/requestId.middleware";
 import { requestLogger } from "./middlewares/logging.middleware";
 
@@ -74,6 +77,9 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/tracking", trackingRoutes);
+app.use("/api/warehouses", protect, warehouseRoutes);
+app.use("/api/pod", protect, podRoutes);
+app.use("/api/reports", protect, schedulerRoutes);
 
 app.use(errorMiddleware);
 

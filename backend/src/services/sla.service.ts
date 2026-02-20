@@ -6,9 +6,10 @@ import { eventBus } from "../utils/eventBus";
 export const checkSlaEscalations = async (): Promise<number> => {
     const now = new Date();
 
+    const escalationThreshold = new Date(now.getTime() + 4 * 60 * 60 * 1000);
     const shipmentsToEscalate = await Shipment.find({
         status: { $nin: [ShipmentStatus.DELIVERED, ShipmentStatus.RETURNED] },
-        slaDeadline: { $lt: now },
+        slaDeadline: { $lt: escalationThreshold },
         isEscalated: false
     });
 

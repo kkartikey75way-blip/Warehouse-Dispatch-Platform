@@ -1,6 +1,5 @@
 import { Response } from "express";
 
-
 export const exportToCsv = (res: Response, filename: string, data: Record<string, string | number | boolean | null>[]) => {
     const firstRow = data[0];
     if (!firstRow) {
@@ -16,7 +15,6 @@ export const exportToCsv = (res: Response, filename: string, data: Record<string
         ...data.map(row =>
             headers.map(header => {
                 const val = row[header];
-
                 const stringVal = val === null || val === undefined ? "" : String(val);
                 if (stringVal.includes(',') || stringVal.includes('"') || stringVal.includes('\n')) {
                     return `"${stringVal.replace(/"/g, '""')}"`;

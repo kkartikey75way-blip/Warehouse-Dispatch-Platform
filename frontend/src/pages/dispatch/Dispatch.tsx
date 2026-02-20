@@ -119,6 +119,19 @@ const DispatchPage = () => {
                 isAutoAssigning={isAutoAssigning}
             />
 
+            {dispatches?.length && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="bg-white p-6 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden group">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Optimization Score</p>
+                        <p className="text-3xl font-black text-slate-900 tracking-tighter">94<span className="text-primary text-sm">/100</span></p>
+                        <div className="h-1 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
+                            <div className="h-full bg-primary" style={{ width: '94%' }} />
+                        </div>
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-all" />
+                    </div>
+                </div>
+            )}
+
             <PendingShipmentsTable
                 shipments={pendingShipments}
                 selectedShipments={selectedShipments}

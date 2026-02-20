@@ -5,7 +5,7 @@ import "./services/notification.service";
 import mongoose from "mongoose";
 import { redisClient } from "./config/redis";
 import { createServer, Server as HttpServer } from "http";
-import { initializeSocket } from "./config/socket.config";
+import { initSocket } from "./config/socket.config";
 import { SocketHandlers } from "./services/socket.handlers";
 
 let server: HttpServer;
@@ -15,7 +15,7 @@ const startServer = async (): Promise<void> => {
 
     const httpServer: HttpServer = createServer(app);
 
-    initializeSocket(httpServer);
+    initSocket(httpServer);
 
     const socketHandlers = new SocketHandlers();
     socketHandlers.initialize();

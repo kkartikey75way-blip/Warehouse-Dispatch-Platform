@@ -15,18 +15,12 @@ interface PopulatedDispatch {
     dispatchTime: Date;
 }
 
-export const getDispatchesController = async (
-    _req: Request,
-    res: Response
-): Promise<void> => {
+export const getDispatchesController = async (_req: Request, res: Response): Promise<void> => {
     const dispatches = await getDispatchesService();
     res.status(200).json(dispatches);
 };
 
-export const exportManifestController = async (
-    _req: Request,
-    res: Response
-): Promise<void> => {
+export const exportManifestController = async (_req: Request, res: Response): Promise<void> => {
     const dispatches = await getDispatchesService() as unknown as PopulatedDispatch[];
 
     const exportData = dispatches.map((d) => ({
@@ -43,36 +37,21 @@ export const exportManifestController = async (
     exportToCsv(res, `manifest-${new Date().toISOString().split('T')[0]}.csv`, exportData);
 };
 
-export const autoAssignDispatchController = async (
-    _req: Request,
-    res: Response
-): Promise<void> => {
-    await autoAssignDispatchService();
-
-    res.status(200).json({
-        success: true,
-        message: "Dispatch assignment completed"
-    });
+export const autoAssignDispatchController = async (_req: Request, res: Response): Promise<void> => {
+    const result = await autoAssignDispatchService();
+    res.status(200).json({ success: true, message: "Dispatch assignment completed", ...result });
 };
 
-export const assignBatchController = async (
-    req: Request,
-    res: Response
-): Promise<void> => {
+export const assignBatchController = async (req: Request, res: Response): Promise<void> => {
     try {
         const { batchId, driverId } = req.body;
-
         if (!batchId || !driverId) {
             res.status(400).json({ message: "batchId and driverId are required" });
             return;
         }
 
         await assignBatchToDriverService(batchId, driverId);
-
-        res.status(200).json({
-            success: true,
-            message: "Batch assigned to driver successfully"
-        });
+        res.status(200).json({ success: true, message: "Batch assigned to driver successfully" });
     } catch (error: unknown) {
         const err = error as { statusCode?: number; message?: string };
         res.status(err.statusCode || 500).json({

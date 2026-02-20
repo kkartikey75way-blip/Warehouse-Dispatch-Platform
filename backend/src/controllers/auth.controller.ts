@@ -3,7 +3,8 @@ import {
     registerService,
     loginService,
     refreshTokenService,
-    verifyEmailService
+    verifyEmailService,
+    renewShiftTokenService
 } from "../services/auth.service";
 import { AppError } from "../utils/appError";
 
@@ -62,7 +63,31 @@ export const verifyEmailController = async (
         await verifyEmailService(token);
         res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
     } catch (error: unknown) {
-        console.error("Verification error:", error);
         res.redirect(`${process.env.FRONTEND_URL}/login?error=verification_failed`);
     }
+};
+
+
+export const renewShiftTokenController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { driverId, userId, newShiftEnd } = req.body;
+
+    if (!driverId || !userId || !newShiftEnd) {
+        throw new AppError("driverId, userId, and newShiftEnd are required", 400);
+    }
+
+    const parsedEnd = new Date(newShiftEnd);
+    if (isNaN(parsedEnd.getTime())) {
+        throw new AppError("Invalid newShiftEnd date format, use ISO 8601", 400);
+    }
+
+    const result = await renewShiftTokenService(driverId, userId, parsedEnd);
+
+    res.status(200).json({
+        success: true,
+        message: "Shift extended. New token issued.",
+        data: result
+    });
 };
