@@ -7,8 +7,12 @@ import {
     updateDriverAvailability,
     updateDriverLoad,
     updateDriver,
-    deleteDriverById
+    deleteDriverById,
+    startDriverBreak,
+    endDriverBreak
 } from "../repositories/driver.repository";
+
+export { findDriverByUserId };
 import { AppError } from "../utils/appError";
 import { Driver, DriverShift } from "../models/driver.model";
 
@@ -38,7 +42,8 @@ export const createDriverService = async (
         shift: DriverShift.MORNING,
         shiftStart,
         shiftEnd,
-        cumulativeDrivingTime: 0
+        cumulativeDrivingTime: 0,
+        continuousDrivingTime: 0
     });
 };
 
@@ -124,7 +129,8 @@ export const getAllDriversService = async () => {
                 shift: DriverShift.MORNING,
                 shiftStart: now,
                 shiftEnd: shiftEnd,
-                cumulativeDrivingTime: 0
+                cumulativeDrivingTime: 0,
+                continuousDrivingTime: 0
             })
         ));
     }
@@ -142,7 +148,7 @@ export const deleteDriverService = async (
         throw new AppError("Driver profile not found", 404);
     }
 
-    
+
     const isOwner = driver.userId.toString() === requesterId;
     const isAdmin = requesterRole === UserRole.ADMIN || requesterRole === UserRole.WAREHOUSE_MANAGER;
 
@@ -150,11 +156,23 @@ export const deleteDriverService = async (
         throw new AppError("You are not authorized to delete this account", 403);
     }
 
-    
+
     await User.findByIdAndDelete(driver.userId);
 
-    
+
     await deleteDriverById(id);
 
     return { message: "Driver and associated user account deleted successfully" };
+};
+
+export const startDriverBreakService = async (driverId: string) => {
+    const driver = await startDriverBreak(driverId);
+    if (!driver) throw new AppError("Driver not found", 404);
+    return driver;
+};
+
+export const endDriverBreakService = async (driverId: string) => {
+    const driver = await endDriverBreak(driverId);
+    if (!driver) throw new AppError("Driver not found", 404);
+    return driver;
 };

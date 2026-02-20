@@ -15,8 +15,10 @@ export interface IDriverInput {
     shift: DriverShift;
     shiftStart: Date;
     shiftEnd: Date;
-    cumulativeDrivingTime: number; 
+    cumulativeDrivingTime: number;
+    continuousDrivingTime: number;
     lastBreakTime?: Date;
+    breakStartTime?: Date;
 }
 
 export interface IDriver extends IDriverInput, Document {
@@ -70,7 +72,14 @@ const driverSchema = new Schema<IDriver>(
             type: Number,
             default: 0
         },
+        continuousDrivingTime: {
+            type: Number,
+            default: 0
+        },
         lastBreakTime: {
+            type: Date
+        },
+        breakStartTime: {
             type: Date
         }
     },

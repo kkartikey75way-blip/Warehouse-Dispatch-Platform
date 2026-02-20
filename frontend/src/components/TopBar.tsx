@@ -1,8 +1,54 @@
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
+import { useGetDriverProfileQuery } from "../services/driverApi";
+import { useState, useEffect } from "react";
+import { Icons } from "./Icons";
 
 const TopBar = () => {
     const { user } = useSelector((state: RootState) => state.auth);
+    const isDriver = user?.role === "DRIVER";
+    const { data: driverProfile } = useGetDriverProfileQuery(undefined, {
+        skip: !isDriver,
+        pollingInterval: 60000
+    });
+
+    const [timeLeft, setTimeLeft] = useState<string>("");
+    const [isLow, setIsLow] = useState(false);
+
+    useEffect(() => {
+        if (!driverProfile?.shiftEnd) return;
+
+        const timer = setInterval(() => {
+            const end = new Date(driverProfile.shiftEnd).getTime();
+            const now = new Date().getTime();
+            const diff = end - now;
+
+            if (diff <= 0) {
+                setTimeLeft("SHIFT ENDED");
+                setIsLow(true);
+                clearInterval(timer);
+                return;
+            }
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            if (hours === 0 && minutes < 30) {
+                setIsLow(true);
+            } else {
+                setIsLow(false);
+            }
+
+            setTimeLeft(
+                `${hours.toString().padStart(2, '0')}:${minutes
+                    .toString()
+                    .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+            );
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [driverProfile]);
 
     return (
         <header className="h-24 bg-surface/60 backdrop-blur-2xl border-b border-border-subtle flex items-center justify-between px-10 sticky top-0 z-20 overflow-hidden">
@@ -17,7 +63,21 @@ const TopBar = () => {
             </div>
 
             <div className="flex items-center gap-6 relative z-10">
-                {}
+                {isDriver && timeLeft && (
+                    <div className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border transition-all animate-in fade-in slide-in-from-right-4 ${isLow
+                        ? "bg-red-500/10 border-red-500/20 text-red-500 shadow-lg shadow-red-500/5"
+                        : "bg-primary/5 border-primary/20 text-primary shadow-lg shadow-primary/5"
+                        }`}>
+                        <Icons.Clock className={`w-4 h-4 ${isLow ? "animate-pulse" : ""}`} />
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black uppercase tracking-widest opacity-60 leading-none mb-1">Shift Timer</span>
+                            <span className="text-sm font-black tracking-widest tabular-nums leading-none">
+                                {timeLeft}
+                            </span>
+                        </div>
+                    </div>
+                )}
+
                 <div className="hidden lg:flex items-center gap-4 px-5 py-2.5 bg-txt-main/5 rounded-xl border border-border-subtle/50 transition-all hover:bg-txt-main/10 active:scale-95 cursor-pointer">
                     <div className="relative flex items-center justify-center">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping absolute opacity-40" />
@@ -28,7 +88,6 @@ const TopBar = () => {
 
                 <div className="h-10 w-px bg-border-subtle hidden sm:block" />
 
-                {}
                 <div className="group flex items-center gap-4 cursor-pointer hover:bg-txt-main/5 p-2 -m-2 rounded-2xl transition-all duration-300">
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-black text-txt-main leading-none group-hover:text-primary transition-colors">{user?.email?.split('@')[0]}</p>

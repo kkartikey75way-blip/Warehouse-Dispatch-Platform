@@ -26,7 +26,7 @@ eventBus.on("delivery_completed", async ({ driverId, shipmentId }) => {
     if (shipment && driverId) {
         await reduceDriverLoadAndCapacity(driverId, shipment.weight);
 
-        
+
         const deliveredEntry = shipment.statusHistory.find(h => h.status === ShipmentStatus.DELIVERED);
         const inTransitEntry = shipment.statusHistory.find(h => h.status === ShipmentStatus.IN_TRANSIT);
 
@@ -40,7 +40,7 @@ eventBus.on("delivery_completed", async ({ driverId, shipmentId }) => {
         }
     }
 
-    
+
     await deleteCache("kpi_dashboard");
 });
 
@@ -73,7 +73,10 @@ export const autoAssignDispatchService = async (): Promise<void> => {
         for (const driver of drivers) {
             if (remainingShipments.length === 0) break;
 
-            if (driver.cumulativeDrivingTime >= 480) continue;
+            const ESTIMATED_ASSIGNMENT_MINS = 45;
+
+            if (driver.cumulativeDrivingTime + ESTIMATED_ASSIGNMENT_MINS > 600) continue;
+            if (driver.continuousDrivingTime + ESTIMATED_ASSIGNMENT_MINS > 300) continue;
 
             const availableCapacity = driver.capacity - driver.currentLoad;
             if (availableCapacity <= 0) continue;
@@ -141,9 +144,15 @@ export const assignBatchToDriverService = async (
         throw new AppError("Driver not found", 404);
     }
 
-    
-    if (driver.cumulativeDrivingTime >= 480) {
-        throw new AppError("Driver has reached the daily driving limit (8 hours)", 400);
+
+    const ESTIMATED_ASSIGNMENT_MINS = 45;
+
+    if (driver.cumulativeDrivingTime + ESTIMATED_ASSIGNMENT_MINS > 600) {
+        throw new AppError("Driver has reached the daily driving limit (10 hours)", 400);
+    }
+
+    if (driver.continuousDrivingTime + ESTIMATED_ASSIGNMENT_MINS > 300) {
+        throw new AppError("Driver requires a mandatory 30-minute break after 5 hours of continuous driving", 400);
     }
 
     const totalWeight = shipments.reduce((sum, s) => sum + s.weight, 0);

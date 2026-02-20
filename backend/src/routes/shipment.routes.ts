@@ -4,7 +4,9 @@ import {
     updateShipmentStatusController,
     getShipmentsController,
     acceptShipmentController,
-    exportShipmentsController
+    exportShipmentsController,
+    splitShipmentController,
+    blindReceiveShipmentController
 } from "../controllers/shipment.controller";
 import { validate } from "../middlewares/validation.middleware";
 import {
@@ -50,6 +52,20 @@ router.patch(
     protect,
     authorize(UserRole.DRIVER),
     acceptShipmentController
+);
+
+router.post(
+    "/:id/split",
+    protect,
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN),
+    splitShipmentController
+);
+
+router.post(
+    "/:id/blind-receive",
+    protect,
+    authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN),
+    blindReceiveShipmentController
 );
 
 export default router;

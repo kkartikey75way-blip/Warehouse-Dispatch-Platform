@@ -39,6 +39,24 @@ export const shipmentApi = baseApi.injectEndpoints({
             }),
             transformResponse: (response: { success: boolean; data: Shipment }) => response.data,
             invalidatesTags: ["Shipment"]
+        }),
+        splitShipment: builder.mutation<Shipment[], { id: string; splits: { quantity: number; zone: string }[] }>({
+            query: ({ id, splits }) => ({
+                url: `/shipments/${id}/split`,
+                method: "POST",
+                body: { splits }
+            }),
+            transformResponse: (response: { success: boolean; data: Shipment[] }) => response.data,
+            invalidatesTags: ["Shipment", "Analytics"]
+        }),
+        blindReceive: builder.mutation<Shipment, { id: string; actualSku: string; actualQuantity: number }>({
+            query: ({ id, actualSku, actualQuantity }) => ({
+                url: `/shipments/${id}/blind-receive`,
+                method: "POST",
+                body: { actualSku, actualQuantity }
+            }),
+            transformResponse: (response: { success: boolean; data: Shipment }) => response.data,
+            invalidatesTags: ["Shipment", "Analytics"]
         })
     })
 });
@@ -48,5 +66,7 @@ export const {
     useGetShipmentByIdQuery,
     useCreateShipmentMutation,
     useUpdateShipmentStatusMutation,
-    useAcceptShipmentMutation
+    useAcceptShipmentMutation,
+    useSplitShipmentMutation,
+    useBlindReceiveMutation
 } = shipmentApi;

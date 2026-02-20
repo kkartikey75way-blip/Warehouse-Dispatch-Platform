@@ -71,7 +71,41 @@ export const incrementDriverDrivingTime = async (
 ): Promise<IDriver | null> => {
     return Driver.findByIdAndUpdate(
         id,
-        { $inc: { cumulativeDrivingTime: minutes } },
+        { $inc: { cumulativeDrivingTime: minutes, continuousDrivingTime: minutes } },
+        { new: true }
+    );
+};
+
+export const startDriverBreak = async (id: string): Promise<IDriver | null> => {
+    return Driver.findByIdAndUpdate(
+        id,
+        {
+            breakStartTime: new Date(),
+            isAvailable: false
+        },
+        { new: true }
+    );
+};
+
+export const endDriverBreak = async (id: string): Promise<IDriver | null> => {
+    return Driver.findByIdAndUpdate(
+        id,
+        {
+            $set: {
+                lastBreakTime: new Date(),
+                continuousDrivingTime: 0,
+                isAvailable: true
+            },
+            $unset: { breakStartTime: "" }
+        },
+        { new: true }
+    );
+};
+
+export const resetContinuousDrivingTime = async (id: string): Promise<IDriver | null> => {
+    return Driver.findByIdAndUpdate(
+        id,
+        { continuousDrivingTime: 0 },
         { new: true }
     );
 };

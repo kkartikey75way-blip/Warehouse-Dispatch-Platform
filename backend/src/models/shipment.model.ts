@@ -40,6 +40,11 @@ export interface IShipmentBase {
     slaTier?: "BRONZE" | "SILVER" | "GOLD" | "PLATINUM";
     slaDeadline?: Date;
     isEscalated?: boolean;
+    expectedQuantity?: number;
+    actualQuantity?: number;
+    actualSku?: string;
+    discrepancyType?: "NONE" | "OVER_SHIPMENT" | "UNDER_SHIPMENT" | "WRONG_SKU";
+    disputeResolved?: boolean;
 }
 
 export interface IShipment extends IShipmentBase, Document {
@@ -154,6 +159,24 @@ const shipmentSchema = new Schema<IShipment>(
             type: Date
         },
         isEscalated: {
+            type: Boolean,
+            default: false
+        },
+        expectedQuantity: {
+            type: Number
+        },
+        actualQuantity: {
+            type: Number
+        },
+        actualSku: {
+            type: String
+        },
+        discrepancyType: {
+            type: String,
+            enum: ["NONE", "OVER_SHIPMENT", "UNDER_SHIPMENT", "WRONG_SKU"],
+            default: "NONE"
+        },
+        disputeResolved: {
             type: Boolean,
             default: false
         }

@@ -113,6 +113,26 @@ export const splitShipmentController = async (
     });
 };
 
+export const blindReceiveShipmentController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { id } = req.params as { id: string };
+    const { actualSku, actualQuantity } = req.body;
+
+    if (!id) {
+        throw new AppError("Shipment ID is required", 400);
+    }
+
+    const { blindReceiveShipmentService } = await import("../services/shipment.service");
+    const shipment = await blindReceiveShipmentService(id, actualSku, Number(actualQuantity));
+
+    res.status(200).json({
+        success: true,
+        data: shipment
+    });
+};
+
 export const exportShipmentsController = async (
     _req: Request,
     res: Response

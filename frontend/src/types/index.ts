@@ -33,6 +33,11 @@ export interface Shipment {
     locationHistory: LocationPoint[];
     statusHistory: StatusHistoryEntry[];
     estimatedDeliveryTime?: string;
+    expectedQuantity?: number;
+    actualQuantity?: number;
+    actualSku?: string;
+    discrepancyType?: 'NONE' | 'OVER_SHIPMENT' | 'UNDER_SHIPMENT' | 'WRONG_SKU';
+    disputeResolved?: boolean;
     createdAt: string;
     updatedAt: string;
 }

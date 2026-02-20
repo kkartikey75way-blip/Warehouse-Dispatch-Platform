@@ -8,6 +8,7 @@ import { ShipmentStatus } from "../../constants/shipmentStatus";
 import ShipmentsHeader from "./components/ShipmentsHeader";
 import NewShipmentModal from "./components/NewShipmentModal";
 import ShipmentDetailsModal from "./components/ShipmentDetailsModal";
+import BlindReceiveModal from "./components/BlindReceiveModal";
 import type { Shipment } from "../../types";
 
 const ShipmentsPage = () => {
@@ -15,6 +16,7 @@ const ShipmentsPage = () => {
     const [updateStatus] = useUpdateShipmentStatusMutation();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
     const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
     console.log("ShipmentsPage render - isDetailsModalOpen:", isDetailsModalOpen, "selectedShipment:", selectedShipment);
     const [searchQuery, setSearchQuery] = useState("");
@@ -25,6 +27,11 @@ const ShipmentsPage = () => {
         console.log("Details button clicked for shipment:", shipment);
         setSelectedShipment(shipment);
         setIsDetailsModalOpen(true);
+    };
+
+    const handleReceiveClick = (shipment: Shipment) => {
+        setSelectedShipment(shipment);
+        setIsReceiveModalOpen(true);
     };
 
     const filteredShipments = shipments?.filter((s) => {
@@ -49,6 +56,11 @@ const ShipmentsPage = () => {
             <ShipmentDetailsModal
                 isOpen={isDetailsModalOpen}
                 onClose={() => setIsDetailsModalOpen(false)}
+                shipment={selectedShipment}
+            />
+            <BlindReceiveModal
+                isOpen={isReceiveModalOpen}
+                onClose={() => setIsReceiveModalOpen(false)}
                 shipment={selectedShipment}
             />
 
@@ -133,6 +145,14 @@ const ShipmentsPage = () => {
                                             </span>
                                         </td>
                                         <td className="text-right flex items-center justify-end gap-3">
+                                            {s.status === "PENDING" && (user?.role === 'ADMIN' || user?.role === 'WAREHOUSE_MANAGER') && (
+                                                <button
+                                                    onClick={() => handleReceiveClick(s)}
+                                                    className="text-[10px] font-black bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-all uppercase tracking-widest"
+                                                >
+                                                    Receive
+                                                </button>
+                                            )}
                                             {(user?.role === 'ADMIN' || user?.role === 'WAREHOUSE_MANAGER') && (
                                                 <select
                                                     value={s.status}

@@ -9,7 +9,9 @@ const statusConfig: Record<string, { bg: string; text: string }> = {
     IN_TRANSIT: { bg: 'bg-indigo-50', text: 'text-indigo-600' },
     DELIVERED: { bg: 'bg-green-50', text: 'text-green-600' },
     RETURNED: { bg: 'bg-red-50', text: 'text-red-600' },
-    PENDING: { bg: 'bg-yellow-50', text: 'text-yellow-600' }
+    PENDING: { bg: 'bg-yellow-50', text: 'text-yellow-600' },
+    DISPUTED: { bg: 'bg-rose-50', text: 'text-rose-600' },
+    OUT_FOR_DELIVERY: { bg: 'bg-teal-50', text: 'text-teal-600' }
 };
 
 const StatusBadge = ({ status }: StatusBadgeProps) => {

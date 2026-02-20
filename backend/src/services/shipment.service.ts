@@ -10,7 +10,14 @@ import { ShipmentStatus } from "../constants/shipmentStatus";
 import { ShipmentPriority } from "../constants/priorities";
 import { ShipmentType } from "../constants/shipmentType";
 import { AppError } from "../utils/appError";
-import { IShipment } from "../models/shipment.model";
+import { IShipment, Shipment } from "../models/shipment.model";
+import { getInventoryBySku, reserveStock, releaseStock, updateStock } from "../repositories/inventory.repository";
+
+const priorityOrder: Record<string, number> = {
+    [ShipmentPriority.EXPRESS]: 1,
+    [ShipmentPriority.STANDARD]: 2,
+    [ShipmentPriority.BULK]: 3
+};
 
 export const getShipmentsService = async (filter: IShipmentFilter = {}) => {
     return getShipments(filter);
@@ -37,12 +44,11 @@ export const createShipmentService = async (
         throw new AppError("Tracking ID already exists", 400);
     }
 
-    const status =
+    let status: ShipmentStatus =
         type === ShipmentType.INBOUND
-            ? ShipmentStatus.RECEIVED
+            ? ShipmentStatus.PENDING
             : ShipmentStatus.PACKED;
 
-    
     const now = new Date();
     const deadline = new Date(now);
     switch (slaTier) {
@@ -59,6 +65,52 @@ export const createShipmentService = async (
         default:
             deadline.setHours(now.getHours() + 48);
             break;
+    }
+
+    if (type === ShipmentType.OUTBOUND) {
+        const inv = await getInventoryBySku(sku);
+        const available = inv ? inv.onHand - inv.reserved : 0;
+
+        if (available < quantity) {
+            // Attempt preemption
+            const currentPriorityValue = priorityOrder[priority] ?? 99;
+            const lowerPriorityShipments = await Shipment.find({
+                sku,
+                type: ShipmentType.OUTBOUND,
+                status: ShipmentStatus.PACKED,
+                priority: {
+                    $in: Object.keys(priorityOrder).filter(p => (priorityOrder[p] ?? 0) > currentPriorityValue)
+                }
+            }).sort({ priority: -1, createdAt: -1 });
+
+            let releasing = 0;
+            const toPreempt = [];
+            for (const s of lowerPriorityShipments) {
+                releasing += s.quantity;
+                toPreempt.push(s);
+                if (available + releasing >= quantity) break;
+            }
+
+            if (available + releasing >= quantity) {
+                // Execute preemption
+                for (const s of toPreempt) {
+                    s.status = ShipmentStatus.PENDING;
+                    s.statusHistory.push({
+                        status: ShipmentStatus.PENDING,
+                        timestamp: new Date(),
+                        notes: `Preempted by higher priority order (${trackingId})`
+                    });
+                    await s.save();
+                    await releaseStock(sku, s.quantity);
+                }
+                status = ShipmentStatus.PACKED;
+                await reserveStock(sku, quantity);
+            } else {
+                status = ShipmentStatus.PENDING;
+            }
+        } else {
+            await reserveStock(sku, quantity);
+        }
     }
 
     return createShipment({
@@ -99,13 +151,15 @@ export const updateShipmentStatusService = async (
         ShipmentStatus,
         ShipmentStatus[]
     > = {
+        PENDING: [ShipmentStatus.RECEIVED, ShipmentStatus.DISPUTED],
         RECEIVED: [ShipmentStatus.PACKED],
         PACKED: [ShipmentStatus.DISPATCHED],
         DISPATCHED: [ShipmentStatus.IN_TRANSIT],
         IN_TRANSIT: [ShipmentStatus.OUT_FOR_DELIVERY, ShipmentStatus.DELIVERED],
         OUT_FOR_DELIVERY: [ShipmentStatus.DELIVERED, ShipmentStatus.RETURNED],
         DELIVERED: [],
-        RETURNED: []
+        RETURNED: [],
+        DISPUTED: [ShipmentStatus.RECEIVED, ShipmentStatus.RETURNED]
     };
 
     if (!validTransitions[shipment.status].includes(status)) {
@@ -181,7 +235,7 @@ export const splitShipmentService = async (
         newShipments.push(newShipment);
     }
 
-    
+
     if (totalSplitQuantity === parent.quantity) {
         await parent.deleteOne();
     } else {
@@ -195,4 +249,80 @@ export const splitShipmentService = async (
     }
 
     return newShipments;
+};
+
+export const blindReceiveShipmentService = async (
+    id: string,
+    actualSku: string,
+    actualQuantity: number
+) => {
+    const shipment = await findShipmentById(id);
+    if (!shipment) throw new AppError("Shipment not found", 404);
+
+    if (shipment.type !== ShipmentType.INBOUND) {
+        throw new AppError("Only inbound shipments can be received", 400);
+    }
+
+    shipment.expectedQuantity = shipment.quantity;
+    shipment.actualQuantity = actualQuantity;
+    shipment.actualSku = actualSku;
+
+    let discrepancyType: "NONE" | "OVER_SHIPMENT" | "UNDER_SHIPMENT" | "WRONG_SKU" = "NONE";
+
+    if (actualSku !== shipment.sku) {
+        discrepancyType = "WRONG_SKU";
+    } else if (actualQuantity > shipment.quantity) {
+        discrepancyType = "OVER_SHIPMENT";
+    } else if (actualQuantity < shipment.quantity) {
+        discrepancyType = "UNDER_SHIPMENT";
+    }
+
+    if (discrepancyType !== "NONE") {
+        shipment.status = ShipmentStatus.DISPUTED;
+        shipment.discrepancyType = discrepancyType;
+        shipment.statusHistory.push({
+            status: ShipmentStatus.DISPUTED,
+            timestamp: new Date(),
+            notes: `Blind receiving discrepancy detected: ${discrepancyType}`
+        });
+    } else {
+        shipment.status = ShipmentStatus.RECEIVED;
+        shipment.statusHistory.push({
+            status: ShipmentStatus.RECEIVED,
+            timestamp: new Date(),
+            notes: "Blind receiving successful: Matches PO"
+        });
+
+        // Update Inventory and trigger auto-fulfillment
+        await updateStock(shipment.sku, shipment.actualQuantity || shipment.quantity);
+        await fulfillPendingOrders(shipment.sku);
+    }
+
+    await shipment.save();
+    return shipment;
+};
+
+const fulfillPendingOrders = async (sku: string) => {
+    const pendingOrders = await Shipment.find({
+        sku,
+        type: ShipmentType.OUTBOUND,
+        status: ShipmentStatus.PENDING
+    }).sort({ priority: 1, createdAt: 1 }); // Process highest priority, then oldest
+
+    for (const order of pendingOrders) {
+        const inv = await getInventoryBySku(sku);
+        if (!inv) continue;
+        const available = inv.onHand - inv.reserved;
+
+        if (available >= order.quantity) {
+            order.status = ShipmentStatus.PACKED;
+            order.statusHistory.push({
+                status: ShipmentStatus.PACKED,
+                timestamp: new Date(),
+                notes: "Automatically fulfilled from new stock arrivals"
+            });
+            await order.save();
+            await reserveStock(sku, order.quantity);
+        }
+    }
 };

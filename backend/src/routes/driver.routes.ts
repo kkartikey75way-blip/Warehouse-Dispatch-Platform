@@ -4,7 +4,10 @@ import {
     updateAvailabilityController,
     getDriversController,
     updateDriverController,
-    deleteDriverController
+    deleteDriverController,
+    getDriverProfileController,
+    startBreakController,
+    endBreakController
 } from "../controllers/driver.controller";
 import { validate } from "../middlewares/validation.middleware";
 import {
@@ -16,6 +19,13 @@ import { authorize } from "../middlewares/role.middleware";
 import { UserRole } from "../constants/roles";
 
 const router = Router();
+
+router.get(
+    "/profile",
+    protect,
+    authorize(UserRole.DRIVER),
+    getDriverProfileController
+);
 
 router.get(
     "/",
@@ -51,6 +61,20 @@ router.delete(
     protect,
     authorize(UserRole.WAREHOUSE_MANAGER, UserRole.ADMIN, UserRole.DRIVER),
     deleteDriverController
+);
+
+router.post(
+    "/break/start",
+    protect,
+    authorize(UserRole.DRIVER),
+    startBreakController
+);
+
+router.post(
+    "/break/end",
+    protect,
+    authorize(UserRole.DRIVER),
+    endBreakController
 );
 
 export default router;

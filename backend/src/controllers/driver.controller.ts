@@ -5,8 +5,49 @@ import {
     updateDriverAvailabilityService,
     updateDriverService,
     getAllDriversService,
-    deleteDriverService
+    deleteDriverService,
+    startDriverBreakService,
+    endDriverBreakService,
+    findDriverByUserId
 } from "../services/driver.service";
+
+// ... (existing controllers)
+
+export const startBreakController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const user = req.user;
+    if (!user) throw new AppError("Unauthorized", 401);
+
+    const driver = await findDriverByUserId(user.userId);
+    if (!driver) throw new AppError("Driver profile not found", 404);
+
+    const updatedDriver = await startDriverBreakService(driver._id.toString());
+
+    res.status(200).json({
+        success: true,
+        data: updatedDriver
+    });
+};
+
+export const endBreakController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const user = req.user;
+    if (!user) throw new AppError("Unauthorized", 401);
+
+    const driver = await findDriverByUserId(user.userId);
+    if (!driver) throw new AppError("Driver profile not found", 404);
+
+    const updatedDriver = await endDriverBreakService(driver._id.toString());
+
+    res.status(200).json({
+        success: true,
+        data: updatedDriver
+    });
+};
 
 export const getDriversController = async (
     _req: Request,
@@ -98,5 +139,20 @@ export const deleteDriverController = async (
     res.status(200).json({
         success: true,
         message: "Driver deleted successfully"
+    });
+};
+export const getDriverProfileController = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const user = req.user;
+    if (!user) throw new AppError("Unauthorized", 401);
+
+    const driver = await findDriverByUserId(user.userId);
+    if (!driver) throw new AppError("Driver profile not found", 404);
+
+    res.status(200).json({
+        success: true,
+        data: driver
     });
 };

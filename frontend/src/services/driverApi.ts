@@ -22,6 +22,11 @@ export const driverApi = baseApi.injectEndpoints({
             transformResponse: (response: { success: boolean; data: Driver[] }) => response.data,
             providesTags: ["Driver"]
         }),
+        getDriverProfile: builder.query<Driver, void>({
+            query: () => "/drivers/profile",
+            transformResponse: (response: { success: boolean; data: Driver }) => response.data,
+            providesTags: ["Driver"]
+        }),
         updateDriverAvailability: builder.mutation<Driver, { id: string; isAvailable: boolean }>({
             query: ({ id, isAvailable }) => ({
                 url: `/drivers/${id}/availability`,
@@ -52,6 +57,7 @@ export const driverApi = baseApi.injectEndpoints({
 
 export const {
     useGetDriversQuery,
+    useGetDriverProfileQuery,
     useUpdateDriverAvailabilityMutation,
     useUpdateDriverMutation,
     useDeleteDriverMutation

@@ -19,7 +19,7 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "../utils/email.util";
 import { User } from "../models/user.model";
 
-import { createDriver, findDriverByUserId } from "../repositories/driver.repository";
+import { createDriver, findDriverByUserId, updateDriver } from "../repositories/driver.repository";
 import { DriverShift } from "../models/driver.model";
 
 export const registerService = async (
@@ -63,7 +63,8 @@ export const registerService = async (
             shift: DriverShift.MORNING,
             shiftStart: now,
             shiftEnd: shiftEnd,
-            cumulativeDrivingTime: 0
+            cumulativeDrivingTime: 0,
+            continuousDrivingTime: 0
         });
     }
 
@@ -105,16 +106,22 @@ export const loginService = async (
     if (user.role === UserRole.DRIVER) {
         const driver = await findDriverByUserId(user._id.toString());
         if (driver && driver.shiftEnd) {
-            const remainingShiftTimeMs = driver.shiftEnd.getTime() - Date.now();
-            if (remainingShiftTimeMs > 0) {
-                
-                expiresIn = Math.floor(remainingShiftTimeMs / 1000);
-            } else {
-                
-                
-                
-                throw new AppError("Your shift has already ended.", 403);
+            let remainingShiftTimeMs = driver.shiftEnd.getTime() - Date.now();
+
+            if (remainingShiftTimeMs <= 0) {
+                const now = new Date();
+                const newShiftEnd = new Date(now);
+                newShiftEnd.setHours(now.getHours() + 8);
+
+                await updateDriver(driver._id.toString(), {
+                    shiftStart: now,
+                    shiftEnd: newShiftEnd,
+                    isAvailable: true
+                });
+                remainingShiftTimeMs = newShiftEnd.getTime() - now.getTime();
             }
+
+            expiresIn = Math.floor(remainingShiftTimeMs / 1000);
         }
     }
 
@@ -159,7 +166,7 @@ export const refreshTokenService = async (
         throw new AppError("Invalid refresh token", 401);
     }
 
-    
+
     if (stored.version > tokenVersion) {
         await deleteRefreshToken(payload.userId);
         throw new AppError("Refresh token has been reused. All sessions invalidated.", 403);
@@ -178,12 +185,22 @@ export const refreshTokenService = async (
     if (payload.role === UserRole.DRIVER) {
         const driver = await findDriverByUserId(payload.userId);
         if (driver && driver.shiftEnd) {
-            const remainingShiftTimeMs = driver.shiftEnd.getTime() - Date.now();
-            if (remainingShiftTimeMs > 0) {
-                expiresIn = Math.floor(remainingShiftTimeMs / 1000);
-            } else {
-                throw new AppError("Your shift has ended. Token cannot be refreshed.", 403);
+            let remainingShiftTimeMs = driver.shiftEnd.getTime() - Date.now();
+
+            if (remainingShiftTimeMs <= 0) {
+                const now = new Date();
+                const newShiftEnd = new Date(now);
+                newShiftEnd.setHours(now.getHours() + 8);
+
+                await updateDriver(driver._id.toString(), {
+                    shiftStart: now,
+                    shiftEnd: newShiftEnd,
+                    isAvailable: true
+                });
+                remainingShiftTimeMs = newShiftEnd.getTime() - now.getTime();
             }
+
+            expiresIn = Math.floor(remainingShiftTimeMs / 1000);
         }
     }
 
