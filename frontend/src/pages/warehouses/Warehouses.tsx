@@ -4,19 +4,38 @@ import Card from "../../components/Card";
 import WarehouseGrid from "./components/WarehouseGrid";
 import ConflictList from "./components/ConflictList";
 import ReturnRoutingCard from "./components/ReturnRoutingCard";
+import NewWarehouseModal from "./components/NewWarehouseModal";
+import WarehouseInventoryModal from "./components/WarehouseInventoryModal";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import { useDeleteWarehouseMutation, type Warehouse } from "../../services/warehouseApi";
 
 const WarehousesPage = () => {
     const { data: warehouses, isLoading: isLoadingWarehouses } = useGetWarehousesQuery();
     const { data: conflicts, isLoading: isLoadingConflicts } = useGetConflictsQuery();
     const [reconcile] = useReconcileConflictMutation();
+    const [deleteWarehouse] = useDeleteWarehouseMutation();
+
+    const [isAddingMode, setIsAddingMode] = useState(false);
+    const [selectedWarehouseForInventory, setSelectedWarehouseForInventory] = useState<Warehouse | null>(null);
 
     const handleReconcile = async (conflictId: string) => {
         try {
             await reconcile({ conflictId, resolution: 'MANUAL_OVERRIDE' }).unwrap();
             toast.success("Conflict reconciled successfully");
         } catch {
-            // Error handled globally by baseApi
+            
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Are you sure you want to decommission this node? All active inventory must be cleared first.")) return;
+        try {
+            await deleteWarehouse(id).unwrap();
+            toast.success("Node decommissioned successfully");
+        } catch (err: unknown) {
+            const error = err as { data?: { message?: string } };
+            toast.error(error?.data?.message || "Failed to decommission node");
         }
     };
 
@@ -32,9 +51,20 @@ const WarehousesPage = () => {
                         Real-time capacity & node health monitoring
                     </p>
                 </div>
+                <button
+                    onClick={() => setIsAddingMode(true)}
+                    className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/10 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                >
+                    <Icons.Plus className="w-4 h-4" />
+                    New Node
+                </button>
             </div>
 
-            <WarehouseGrid warehouses={warehouses || []} />
+            <WarehouseGrid
+                warehouses={warehouses || []}
+                onDelete={handleDelete}
+                onShowInventory={setSelectedWarehouseForInventory}
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card title="Conflict Reconciliation" className="p-8 border-none shadow-xl border border-slate-100">
@@ -49,6 +79,20 @@ const WarehousesPage = () => {
                     <ReturnRoutingCard />
                 </Card>
             </div>
+
+            <NewWarehouseModal
+                isOpen={isAddingMode}
+                onClose={() => setIsAddingMode(false)}
+            />
+
+            {selectedWarehouseForInventory && (
+                <WarehouseInventoryModal
+                    isOpen={!!selectedWarehouseForInventory}
+                    onClose={() => setSelectedWarehouseForInventory(null)}
+                    warehouseCode={selectedWarehouseForInventory.code}
+                    warehouseName={selectedWarehouseForInventory.name}
+                />
+            )}
         </div>
     );
 };

@@ -239,8 +239,8 @@ export const refreshTokenService = async (
 
 
 export const renewShiftTokenService = async (
-    driverId: string,       // Driver._id
-    userId: string,         // User._id (for token payload)
+    driverId: string,       
+    userId: string,         
     newShiftEnd: Date
 ) => {
     const driver = await findDriverByUserId(userId);
@@ -249,7 +249,7 @@ export const renewShiftTokenService = async (
         throw new AppError("Driver not found", 404);
     }
 
-    // Update shift timing
+    
     await updateDriver(driver._id.toString(), {
         shiftEnd: newShiftEnd,
         shiftTokenIssuedAt: new Date()

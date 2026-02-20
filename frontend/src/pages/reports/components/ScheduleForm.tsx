@@ -3,10 +3,11 @@ import React from "react";
 interface ScheduleFormProps {
     newSchedule: {
         name: string;
-        type: "DISPATCH_MANIFEST" | "DELIVERY_REPORT";
+        type: "dispatch_manifest" | "delivery_report";
         format: "CSV" | "PDF";
-        cron: string;
-        recipients: string[];
+        cronExpression: string;
+        timezone: string;
+        recipientEmails: string[];
     };
     onFieldChange: (field: string, value: string) => void;
     onSubmit: (e: React.FormEvent) => void;
@@ -35,8 +36,8 @@ const ScheduleForm = ({ newSchedule, onFieldChange, onSubmit, onCancel }: Schedu
                         onChange={e => onFieldChange("type", e.target.value)}
                         className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none transition-all"
                     >
-                        <option value="DISPATCH_MANIFEST">Manifest</option>
-                        <option value="DELIVERY_REPORT">Delivery</option>
+                        <option value="dispatch_manifest">Manifest</option>
+                        <option value="delivery_report">Delivery</option>
                     </select>
                 </div>
                 <div>
@@ -56,8 +57,8 @@ const ScheduleForm = ({ newSchedule, onFieldChange, onSubmit, onCancel }: Schedu
                 <input
                     type="text"
                     required
-                    value={newSchedule.cron}
-                    onChange={e => onFieldChange("cron", e.target.value)}
+                    value={newSchedule.cronExpression}
+                    onChange={e => onFieldChange("cronExpression", e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                 />
             </div>
@@ -66,8 +67,8 @@ const ScheduleForm = ({ newSchedule, onFieldChange, onSubmit, onCancel }: Schedu
                 <input
                     type="text"
                     required
-                    value={newSchedule.recipients.join(", ")}
-                    onChange={e => onFieldChange("recipients", e.target.value)}
+                    value={newSchedule.recipientEmails.join(", ")}
+                    onChange={e => onFieldChange("recipientEmails", e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                     placeholder="sep by comma"
                 />

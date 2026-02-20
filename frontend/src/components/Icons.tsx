@@ -23,7 +23,9 @@ import {
     ArrowUp,
     ArrowDown,
     Globe,
-    RefreshCcw
+    RefreshCcw,
+    Trash2,
+    ArrowRight
 } from 'lucide-react';
 
 export const Icons = {
@@ -50,5 +52,7 @@ export const Icons = {
     ArrowUp: (props: React.ComponentProps<typeof ArrowUp>) => <ArrowUp size={18} {...props} />,
     ArrowDown: (props: React.ComponentProps<typeof ArrowDown>) => <ArrowDown size={18} {...props} />,
     Globe: (props: React.ComponentProps<typeof Globe>) => <Globe size={18} {...props} />,
-    SwitchCamera: (props: React.ComponentProps<typeof RefreshCcw>) => <RefreshCcw size={18} {...props} />
+    SwitchCamera: (props: React.ComponentProps<typeof RefreshCcw>) => <RefreshCcw size={18} {...props} />,
+    Trash: (props: React.ComponentProps<typeof Trash2>) => <Trash2 size={18} {...props} />,
+    ArrowRight: (props: React.ComponentProps<typeof ArrowRight>) => <ArrowRight size={18} {...props} />
 };

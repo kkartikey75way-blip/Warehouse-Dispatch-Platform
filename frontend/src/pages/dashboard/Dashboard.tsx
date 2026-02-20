@@ -1,16 +1,8 @@
+import { useMemo } from "react";
 import { useGetKpiDashboardQuery } from "../../services/analyticsApi";
 import Card from "../../components/Card";
 import { Icons } from "../../components/Icons";
-
-interface Activity {
-    description: string;
-    time: string;
-}
-
-interface DriverUtilization {
-    name: string;
-    utilization: number;
-}
+import { type RecentActivity as Activity, type CausalWaterfall as CausalAnalysis, type DriverUtilization } from "../../types";
 
 interface StatCardProps {
     title: string;
@@ -35,8 +27,84 @@ const StatCard = ({ title, value, subValue, trend, trendType }: StatCardProps) =
     </Card>
 );
 
+const CausalWaterfall = ({ analysis }: { analysis: CausalAnalysis }) => (
+    <Card title="Performance Causal Analysis" className="col-span-1 lg:col-span-3">
+        <div className="mb-6 bg-slate-50 p-6 rounded-2xl border border-slate-100 flex items-center justify-between">
+            <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Primary Performance Driver</p>
+                <h4 className="text-xl font-black text-slate-900">{analysis.primaryCause}</h4>
+            </div>
+            <div className="text-right">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Baseline vs Current</p>
+                <div className="flex items-center gap-3">
+                    <span className="text-lg font-bold text-slate-400 line-through">{analysis.baselineOnTimeRate}%</span>
+                    <Icons.ArrowRight className="w-4 h-4 text-slate-300" />
+                    <span className="text-2xl font-black text-red-600">{analysis.currentOnTimeRate}%</span>
+                </div>
+            </div>
+        </div>
+
+        <div className="space-y-4">
+            {analysis.steps.map((step, idx) => (
+                <div key={idx} className="flex items-center gap-4">
+                    <div className="w-48 text-xs font-black text-slate-500 uppercase tracking-tight truncate">{step.category}</div>
+                    <div className="flex-1 h-8 flex items-center">
+                        <div className="relative w-full h-full flex items-center">
+                            { }
+                            <div
+                                className={`h-6 rounded-md flex items-center justify-end px-3 text-[10px] font-black text-white ${step.impact < 0 ? 'bg-red-500 shadow-sm shadow-red-200' : 'bg-green-500'}`}
+                                style={{
+                                    width: `${Math.abs(step.impact * 2)}%`,
+                                    marginLeft: step.impact < 0 ? `${50 - Math.abs(step.impact * 2)}%` : '50%'
+                                }}
+                            >
+                                {step.impact > 0 ? '+' : ''}{step.impact}%
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w-64 text-[11px] text-slate-400 font-bold italic line-clamp-1">{step.description}</div>
+                </div>
+            ))}
+
+            <div className="pt-4 border-t border-dashed border-slate-200 flex items-center justify-between">
+                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Performance Delta</div>
+                <div className="text-lg font-black text-red-600">{analysis.totalDelta}% OTD Drop</div>
+            </div>
+        </div>
+    </Card>
+);
+
 const DashboardPage = () => {
     const { data, isLoading } = useGetKpiDashboardQuery();
+
+    const memoizedActivity = useMemo(() => {
+        if (!data?.recentActivity || data.recentActivity.length === 0) {
+            return (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                        <Icons.Package className="w-8 h-8" />
+                    </div>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No recent activity detected</p>
+                </div>
+            );
+        }
+        return data.recentActivity.map((activity: Activity, idx: number) => (
+            <div key={idx} className="py-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 font-bold uppercase">
+                        {activity.description?.[0] || 'A'}
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-slate-800">{activity.description}</p>
+                        <p className="text-xs text-slate-400 font-medium">{activity.time}</p>
+                    </div>
+                </div>
+                <span className="text-xs font-black text-primary px-3 py-1 bg-primary/5 rounded-full tracking-tight">
+                    COMPLETED
+                </span>
+            </div>
+        ));
+    }, [data?.recentActivity]);
 
     if (isLoading) {
         return (
@@ -89,31 +157,7 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <Card className="lg:col-span-2 min-h-[400px]" title="Recent Dispatch Activity">
                     <div className="flex flex-col divide-y divide-slate-50">
-                        {!data?.recentActivity || data.recentActivity.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-4">
-                                    <Icons.Package className="w-8 h-8" />
-                                </div>
-                                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No recent activity detected</p>
-                            </div>
-                        ) : (
-                            data.recentActivity.map((activity: Activity, idx: number) => (
-                                <div key={idx} className="py-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 font-bold uppercase">
-                                            {activity.description?.[0] || 'A'}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-800">{activity.description}</p>
-                                            <p className="text-xs text-slate-400 font-medium">{activity.time}</p>
-                                        </div>
-                                    </div>
-                                    <span className="text-xs font-black text-primary px-3 py-1 bg-primary/5 rounded-full tracking-tight">
-                                        COMPLETED
-                                    </span>
-                                </div>
-                            ))
-                        )}
+                        {memoizedActivity}
                     </div>
                 </Card>
 
@@ -136,6 +180,12 @@ const DashboardPage = () => {
                     </div>
                 </Card>
             </div>
+
+            {data?.causalAnalysis && (
+                <div className="grid grid-cols-1 gap-8">
+                    <CausalWaterfall analysis={data.causalAnalysis} />
+                </div>
+            )}
         </div>
     );
 };

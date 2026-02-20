@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGetShipmentsQuery, useUpdateShipmentStatusMutation } from "../../services/shipmentApi";
 import { useAppSelector } from "../../store/hooks";
 import Card from "../../components/Card";
@@ -18,13 +18,11 @@ const ShipmentsPage = () => {
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
     const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
-    console.log("ShipmentsPage render - isDetailsModalOpen:", isDetailsModalOpen, "selectedShipment:", selectedShipment);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterStatus, setFilterStatus] = useState<string>("ALL");
     const { user } = useAppSelector((state) => state.auth);
 
     const handleDetailsClick = (shipment: Shipment) => {
-        console.log("Details button clicked for shipment:", shipment);
         setSelectedShipment(shipment);
         setIsDetailsModalOpen(true);
     };
@@ -34,16 +32,27 @@ const ShipmentsPage = () => {
         setIsReceiveModalOpen(true);
     };
 
-    const filteredShipments = shipments?.filter((s) => {
-        const matchesSearch =
-            s.trackingId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.zone.toLowerCase().includes(searchQuery.toLowerCase());
+    const filteredShipments = useMemo(() => {
+        return shipments?.filter((s) => {
+            const query = searchQuery.toLowerCase();
+            const matchesSearch =
+                s.trackingId.toLowerCase().includes(query) ||
+                s.sku.toLowerCase().includes(query) ||
+                s.zone.toLowerCase().includes(query);
 
-        const matchesStatus = filterStatus === "ALL" || s.status === filterStatus;
+            const matchesStatus = filterStatus === "ALL" || s.status === filterStatus;
 
-        return matchesSearch && matchesStatus;
-    });
+            return matchesSearch && matchesStatus;
+        });
+    }, [shipments, searchQuery, filterStatus]);
+
+    const getPriorityColor = (priority: string) => {
+        switch (priority) {
+            case "EXPRESS": return "text-red-500";
+            case "STANDARD": return "text-blue-500";
+            default: return "text-slate-500";
+        }
+    };
 
     return (
         <div className="space-y-8">
@@ -138,14 +147,12 @@ const ShipmentsPage = () => {
                                             <StatusBadge status={s.status} />
                                         </td>
                                         <td>
-                                            <span className={`text-[10px] font-black ${s.priority === "EXPRESS" ? "text-red-500" :
-                                                s.priority === "STANDARD" ? "text-blue-500" : "text-slate-500"
-                                                } uppercase tracking-tight`}>
+                                            <span className={`text-[10px] font-black ${getPriorityColor(s.priority)} uppercase tracking-tight`}>
                                                 {s.priority}
                                             </span>
                                         </td>
                                         <td className="text-right flex items-center justify-end gap-3">
-                                            {s.status === "PENDING" && (user?.role === 'ADMIN' || user?.role === 'WAREHOUSE_MANAGER') && (
+                                            {s.status === "PENDING" && s.type === "INBOUND" && (user?.role === 'ADMIN' || user?.role === 'WAREHOUSE_MANAGER') && (
                                                 <button
                                                     onClick={() => handleReceiveClick(s)}
                                                     className="text-[10px] font-black bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-all uppercase tracking-widest"

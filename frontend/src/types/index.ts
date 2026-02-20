@@ -62,6 +62,12 @@ export interface CausalWaterfall {
     primaryCause: string;
 }
 
+export interface DriverUtilization {
+    name: string;
+    utilization: number;
+    deliveries?: number;
+}
+
 export interface KpiDashboard {
     onTimeRate: number;
     avgDispatchTime: number;
@@ -71,7 +77,7 @@ export interface KpiDashboard {
     deliveredToday: number;
     activeDrivers: number;
     shipmentsByStatus?: Array<{ _id: string; count: number }>;
-    driverUtilization: Array<{ name: string; utilization: number; deliveries?: number }>;
+    driverUtilization: DriverUtilization[];
     recentActivity: RecentActivity[];
     trends: Array<{ name: string; value: number }>;
     performanceScore: number;

@@ -11,7 +11,9 @@ import { ShipmentPriority } from "../constants/priorities";
 import { ShipmentType } from "../constants/shipmentType";
 import { AppError } from "../utils/appError";
 import { IShipment, Shipment } from "../models/shipment.model";
+import { ShipmentEvent, ShipmentEventType } from "../models/shipmentEvent.model";
 import { getInventoryBySku, reserveStock, releaseStock, updateStock } from "../repositories/inventory.repository";
+import { Types } from "mongoose";
 
 const priorityOrder: Record<string, number> = {
     [ShipmentPriority.EXPRESS]: 1,
@@ -95,7 +97,7 @@ export const createShipmentService = async (
         }
     }
 
-    return createShipment({
+    const shipment = await createShipment({
         trackingId,
         sku,
         quantity,
@@ -116,6 +118,16 @@ export const createShipmentService = async (
             notes: "Shipment created"
         }]
     });
+
+    await ShipmentEvent.create({
+        shipmentId: shipment._id as Types.ObjectId,
+        eventType: ShipmentEventType.STATUS_CHANGE,
+        timestamp: new Date(),
+        payload: { notes: "Shipment created" },
+        newStatus: status
+    });
+
+    return shipment;
 };
 
 export const updateShipmentStatusService = async (id: string, status: ShipmentStatus) => {
@@ -123,7 +135,7 @@ export const updateShipmentStatusService = async (id: string, status: ShipmentSt
     if (!shipment) throw new AppError("Shipment not found", 404);
 
     const validTransitions: Record<ShipmentStatus, ShipmentStatus[]> = {
-        PENDING: [ShipmentStatus.RECEIVED, ShipmentStatus.DISPUTED],
+        PENDING: [ShipmentStatus.RECEIVED, ShipmentStatus.DISPUTED, ShipmentStatus.IN_TRANSIT],
         RECEIVED: [ShipmentStatus.PACKED],
         PACKED: [ShipmentStatus.DISPATCHED],
         DISPATCHED: [ShipmentStatus.IN_TRANSIT],
@@ -138,15 +150,26 @@ export const updateShipmentStatusService = async (id: string, status: ShipmentSt
         throw new AppError(`Invalid status transition from ${shipment.status} to ${status}`, 400);
     }
 
-    return updateShipmentStatus(id, status);
+    const previousStatus = shipment.status;
+    const updated = await updateShipmentStatus(id, status);
+
+    await ShipmentEvent.create({
+        shipmentId: new Types.ObjectId(id),
+        eventType: ShipmentEventType.STATUS_CHANGE,
+        timestamp: new Date(),
+        previousStatus,
+        newStatus: status
+    });
+
+    return updated;
 };
 
 export const acceptShipmentService = async (shipmentId: string, driverId: string) => {
     const shipment = await findShipmentById(shipmentId);
     if (!shipment) throw new AppError("Shipment not found", 404);
 
-    if (shipment.status !== ShipmentStatus.DISPATCHED) {
-        throw new AppError("Only dispatched shipments can be accepted", 400);
+    if (shipment.status !== ShipmentStatus.DISPATCHED && !(shipment.type === ShipmentType.INBOUND && shipment.status === ShipmentStatus.PENDING)) {
+        throw new AppError("Only dispatched shipments or pending inbound shipments can be accepted", 400);
     }
 
     if (String(shipment.assignedDriverId) !== driverId) {
@@ -230,7 +253,7 @@ export const blindReceiveShipmentService = async (id: string, actualSku: string,
         shipment.statusHistory.push({
             status: ShipmentStatus.DISPUTED,
             timestamp: new Date(),
-            notes: `Blind receiving discrepancy detected: ${discrepancyType}`
+            notes: `Blind receiving discrepancy detected: ${discrepancyType}. Stock updated for actual items received.`
         });
     } else {
         shipment.status = ShipmentStatus.RECEIVED;
@@ -239,11 +262,71 @@ export const blindReceiveShipmentService = async (id: string, actualSku: string,
             timestamp: new Date(),
             notes: "Blind receiving successful: Matches PO"
         });
-        await updateStock(shipment.sku, shipment.actualQuantity || shipment.quantity);
-        await fulfillPendingOrders(shipment.sku);
+    }
+
+    
+    if (discrepancyType === "NONE" && actualQuantity > 0) {
+        await updateStock(actualSku, actualQuantity);
+        await fulfillPendingOrders(actualSku);
     }
 
     await shipment.save();
+
+    await ShipmentEvent.create({
+        shipmentId: shipment._id as Types.ObjectId,
+        eventType: ShipmentEventType.STATUS_CHANGE,
+        timestamp: new Date(),
+        previousStatus: ShipmentStatus.PENDING,
+        newStatus: shipment.status,
+        payload: { discrepancyType, actualSku, actualQuantity }
+    });
+
+    return shipment;
+};
+
+export const resolveInboundDisputeService = async (id: string, resolution: "ACCEPT_ACTUAL" | "RETURN_TO_SENDER", notes?: string) => {
+    const shipment = await findShipmentById(id);
+    if (!shipment) throw new AppError("Shipment not found", 404);
+
+    if (shipment.status !== ShipmentStatus.DISPUTED) {
+        throw new AppError("Only disputed shipments can be resolved", 400);
+    }
+
+    const previousStatus = shipment.status;
+    if (resolution === "ACCEPT_ACTUAL") {
+        if (!shipment.actualSku || shipment.actualQuantity === undefined) {
+            throw new AppError("Actual SKU or quantity missing from disputed shipment", 400);
+        }
+
+        await updateStock(shipment.actualSku, shipment.actualQuantity);
+        await fulfillPendingOrders(shipment.actualSku);
+
+        shipment.status = ShipmentStatus.RECEIVED;
+        shipment.statusHistory.push({
+            status: ShipmentStatus.RECEIVED,
+            timestamp: new Date(),
+            notes: `Dispute resolved: Accepted actual items. ${notes ?? ""}`
+        });
+    } else {
+        shipment.status = ShipmentStatus.RETURNED;
+        shipment.statusHistory.push({
+            status: ShipmentStatus.RETURNED,
+            timestamp: new Date(),
+            notes: `Dispute resolved: Returned to sender. ${notes ?? ""}`
+        });
+    }
+
+    await shipment.save();
+
+    await ShipmentEvent.create({
+        shipmentId: shipment._id as Types.ObjectId,
+        eventType: ShipmentEventType.STATUS_CHANGE,
+        timestamp: new Date(),
+        previousStatus,
+        newStatus: shipment.status,
+        payload: { resolution, notes }
+    });
+
     return shipment;
 };
 
@@ -260,6 +343,7 @@ const fulfillPendingOrders = async (sku: string) => {
         const available = inv.onHand - inv.reserved;
 
         if (available >= order.quantity) {
+            const previousStatus = order.status;
             order.status = ShipmentStatus.PACKED;
             order.statusHistory.push({
                 status: ShipmentStatus.PACKED,
@@ -268,6 +352,45 @@ const fulfillPendingOrders = async (sku: string) => {
             });
             await order.save();
             await reserveStock(sku, order.quantity);
+
+            await ShipmentEvent.create({
+                shipmentId: order._id as Types.ObjectId,
+                eventType: ShipmentEventType.STATUS_CHANGE,
+                timestamp: new Date(),
+                previousStatus,
+                newStatus: ShipmentStatus.PACKED,
+                payload: { notes: "Automatic fulfillment" }
+            });
         }
     }
+};
+
+export const getShipmentStatusAtTime = async (shipmentId: string, timestamp: Date): Promise<ShipmentStatus | null> => {
+    const events = await ShipmentEvent.find({
+        shipmentId: new Types.ObjectId(shipmentId),
+        timestamp: { $lte: timestamp },
+        eventType: ShipmentEventType.STATUS_CHANGE
+    }).sort({ timestamp: 1 });
+
+    if (events.length === 0) return null;
+
+    const lastEvent = events[events.length - 1];
+    return lastEvent?.newStatus || null;
+};
+
+export const verifyShipmentIntegrity = async (shipmentId: string): Promise<{
+    actualStatus: ShipmentStatus;
+    derivedStatus: ShipmentStatus | null;
+    isConsistent: boolean;
+}> => {
+    const shipment = await findShipmentById(shipmentId);
+    if (!shipment) throw new AppError("Shipment not found", 404);
+
+    const derivedStatus = await getShipmentStatusAtTime(shipmentId, new Date());
+
+    return {
+        actualStatus: shipment.status,
+        derivedStatus,
+        isConsistent: shipment.status === derivedStatus
+    };
 };

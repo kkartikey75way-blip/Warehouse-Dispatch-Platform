@@ -44,8 +44,9 @@ const PendingShipmentsTable = ({
                                     <input
                                         type="checkbox"
                                         onChange={(e) => onSelectAll(e.target.checked)}
-                                        checked={shipments.length > 0 && selectedShipments.length === shipments.length}
-                                        className="rounded border-slate-300 text-primary focus:ring-primary"
+                                        checked={shipments.filter(s => s.status !== 'PENDING').length > 0 && selectedShipments.length === shipments.filter(s => s.status !== 'PENDING').length}
+                                        className="rounded border-slate-300 text-primary focus:ring-primary disabled:opacity-30"
+                                        disabled={shipments.filter(s => s.status !== 'PENDING').length === 0}
                                     />
                                 </th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracking ID</th>
@@ -61,16 +62,28 @@ const PendingShipmentsTable = ({
                                 <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">No pending shipments</td></tr>
                             ) : (
                                 shipments.map((s) => (
-                                    <tr key={s._id} className="hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => onToggleSelection(s._id)}>
+                                    <tr
+                                        key={s._id}
+                                        className={`transition-colors cursor-pointer ${s.status === 'PENDING' ? 'opacity-60 bg-slate-50/30 grayscale-[0.5]' : 'hover:bg-slate-50/50'}`}
+                                        onClick={() => s.status !== 'PENDING' && onToggleSelection(s._id)}
+                                    >
                                         <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
                                             <input
                                                 type="checkbox"
                                                 checked={selectedShipments.includes(s._id)}
-                                                onChange={() => onToggleSelection(s._id)}
-                                                className="rounded border-slate-300 text-primary focus:ring-primary"
+                                                onChange={() => s.status !== 'PENDING' && onToggleSelection(s._id)}
+                                                disabled={s.status === 'PENDING'}
+                                                className="rounded border-slate-300 text-primary focus:ring-primary disabled:opacity-30 disabled:cursor-not-allowed"
                                             />
                                         </td>
-                                        <td className="px-6 py-4 text-sm font-bold text-slate-900">{s.trackingId}</td>
+                                        <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                                            {s.trackingId}
+                                            {s.status === 'PENDING' && (
+                                                <span className="ml-2 px-2 py-0.5 text-[8px] bg-amber-50 text-amber-600 border border-amber-100 rounded-full font-black uppercase tracking-tighter">
+                                                    Awaiting Stock
+                                                </span>
+                                            )}
+                                        </td>
                                         <td className="px-6 py-4 text-sm font-medium text-slate-600">{s.zone}</td>
                                         <td className="px-6 py-4 text-sm font-medium text-slate-600">{s.weight}kg</td>
                                         <td className="px-6 py-4">

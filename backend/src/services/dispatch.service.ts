@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { getAvailableDriversByZone, updateDriverLoad, reduceDriverLoadAndCapacity, incrementDriverDrivingTime } from "../repositories/driver.repository";
+import { consumeStock } from "../repositories/inventory.repository";
 import { bulkMarkAsDispatched, findShipmentById, getPendingOutboundShipments } from "../repositories/shipment.repository";
 import { createDispatchRecords, getDispatches, updateDispatchStatus } from "../repositories/dispatch.repository";
 import { AppError } from "../utils/appError";
@@ -46,11 +47,15 @@ const estimateDeliveryMinutes = (shipments: IShipment[]): number => {
     return shipments.length * (SERVICE_TIME_MINUTES + 10);
 };
 
-const withinTimeWindow = (shipment: IShipment): boolean => {
+const withinTimeWindow = (shipment: IShipment, travelMinutes: number = 0): boolean => {
     const s = shipment as IShipment & { timeWindowStart?: Date; timeWindowEnd?: Date; };
     if (!s.timeWindowStart || !s.timeWindowEnd) return true;
-    const now = new Date();
-    return now >= s.timeWindowStart && now <= s.timeWindowEnd;
+
+    
+    const projectedArrival = new Date(Date.now() + travelMinutes * 60 * 1000);
+
+    
+    return projectedArrival >= s.timeWindowStart && projectedArrival <= s.timeWindowEnd;
 };
 
 export interface OptimizationResult {
@@ -93,6 +98,9 @@ eventBus.on("delivery_completed", async ({ driverId, shipmentId }) => {
             const drivingMinutes = Math.round(drivingTimeMs / (1000 * 60));
             if (drivingMinutes > 0) await incrementDriverDrivingTime(driverId, drivingMinutes);
         }
+
+        
+        await consumeStock(shipment.sku, shipment.quantity);
     }
     await deleteCache("kpi_dashboard");
 });
@@ -162,13 +170,15 @@ export const autoAssignDispatchService = async (): Promise<OptimizationResult> =
             let usedVolume = 0;
 
             for (const shipment of remainingShipments) {
-                if (!withinTimeWindow(shipment)) continue;
-
                 const candidateWeight = usedWeight + shipment.weight;
                 const candidateVolume = usedVolume + shipment.volume;
 
                 if (candidateWeight <= availableWeightCapacity && candidateVolume <= availableVolumeCapacity) {
                     const estimatedMins = estimateDeliveryMinutes([...assignedShipments, shipment]);
+
+                    
+                    if (!withinTimeWindow(shipment, estimatedMins)) continue;
+
                     const regCheck = checkDriverRegulations(driver, estimatedMins);
                     if (!regCheck.allowed) continue;
 
@@ -190,6 +200,17 @@ export const autoAssignDispatchService = async (): Promise<OptimizationResult> =
             totalExpressAssigned += assignedShipments.filter(s => s.priority === ShipmentPriority.EXPRESS).length;
 
             remainingShipments = remainingShipments.filter(s => !assignedIds.map(id => id.toString()).includes(s._id.toString()));
+
+            for (const s of assignedShipments) {
+                await ShipmentEvent.create({
+                    shipmentId: s._id as Types.ObjectId,
+                    eventType: ShipmentEventType.STATUS_CHANGE,
+                    timestamp: new Date(),
+                    previousStatus: ShipmentStatus.PACKED,
+                    newStatus: ShipmentStatus.DISPATCHED,
+                    payload: { driverId: driver._id.toString(), method: "auto-assign" }
+                });
+            }
 
             eventBus.emit("dispatch_assigned", { driverId: driver._id.toString(), shipmentCount: assignedIds.length });
         }
@@ -243,6 +264,17 @@ export const assignBatchToDriverService = async (batchId: string, driverId: stri
     await bulkMarkAsDispatched(shipmentIds, driver._id as Types.ObjectId);
     await createDispatchRecords(shipmentIds.map(id => ({ shipmentId: id, driverId: driver._id as Types.ObjectId })));
     await updateDriverLoad(driver._id.toString(), driver.currentLoad + totalWeight);
+
+    for (const s of shipments) {
+        await ShipmentEvent.create({
+            shipmentId: s._id as Types.ObjectId,
+            eventType: ShipmentEventType.STATUS_CHANGE,
+            timestamp: new Date(),
+            previousStatus: s.status,
+            newStatus: ShipmentStatus.DISPATCHED,
+            payload: { driverId: driver._id.toString(), method: "batch-assign" }
+        });
+    }
 
     eventBus.emit("dispatch_assigned", { driverId: driver._id.toString(), shipmentCount: shipments.length });
 };

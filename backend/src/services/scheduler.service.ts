@@ -6,6 +6,8 @@ import {
     generateDispatchManifestPDF,
     generateDeliveryReportPDF
 } from "./export.service";
+import { getReportReadyEmailTemplate } from "../utils/templates/report.templates";
+import { AppError } from "../utils/appError";
 
 export interface ScheduledReport {
     id: string;
@@ -82,13 +84,15 @@ const runReport = async (schedule: ScheduledReport): Promise<void> => {
 
         const reportId = crypto.randomUUID();
         const downloadLink = generateSignedLink(reportId, filename);
-        const html = `
-            <h2>📦 Wareflow — Scheduled Report</h2>
-            <p>Your scheduled report <strong>${schedule.name}</strong> is ready.</p>
-            <p>Type: <strong>${schedule.type.replace("_", " ").toUpperCase()} (${schedule.format.toUpperCase()})</strong></p>
-            <p>Generated: <strong>${new Date().toLocaleString("en-US", { timeZone: schedule.timezone })}</strong></p>
-            <p><a href="${downloadLink}" style="display:inline-block;padding:10px 20px;background:#6366f1;color:#fff;text-decoration:none;border-radius:6px">⬇️ Download Report (24h)</a></p>
-        `;
+        const generatedAt = new Date().toLocaleString("en-US", { timeZone: schedule.timezone });
+
+        const html = getReportReadyEmailTemplate(
+            schedule.name,
+            schedule.type,
+            schedule.format,
+            generatedAt,
+            downloadLink
+        );
 
         for (const email of schedule.recipientEmails) {
             await sendEmail(email, `Wareflow Report: ${schedule.name}`, html);
@@ -146,7 +150,7 @@ export const deleteScheduledReportService = (id: string): boolean => {
 
 export const runReportNowService = async (id: string): Promise<void> => {
     const schedule = scheduleRegistry.get(id);
-    if (!schedule) throw new Error(`Scheduled report ${id} not found`);
+    if (!schedule) throw new AppError(`Scheduled report ${id} not found`, 404);
     await runReport(schedule);
 };
 

@@ -26,7 +26,6 @@ export const useShipmentTracking = (shipmentId: string | null) => {
 
 
         socket.emit('subscribe:shipment', shipmentId);
-        console.log(`Subscribed to shipment: ${shipmentId}`);
 
 
         const handleLocationUpdate = (data: LocationUpdatePayload) => {
@@ -56,7 +55,6 @@ export const useShipmentTracking = (shipmentId: string | null) => {
             socket.emit('unsubscribe:shipment', shipmentId);
             socket.off('shipment:location', handleLocationUpdate);
             socket.off('shipment:status', handleStatusUpdate);
-            console.log(`Unsubscribed from shipment: ${shipmentId}`);
         };
     }, [socket, isConnected, shipmentId]);
 

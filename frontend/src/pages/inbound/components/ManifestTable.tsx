@@ -14,6 +14,7 @@ const ManifestTable = ({ shipments, selectedShipment, onSelect }: ManifestTableP
                 <thead>
                     <tr className="text-left border-b border-slate-50">
                         <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Shipment ID</th>
+                        <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">SKU</th>
                         <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Origin</th>
                         <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
                         <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
@@ -23,6 +24,7 @@ const ManifestTable = ({ shipments, selectedShipment, onSelect }: ManifestTableP
                     {shipments.map((s) => (
                         <tr key={s._id} className="group hover:bg-slate-50/50 transition-colors">
                             <td className="py-4 font-black text-xs text-slate-900">{s._id.slice(-8).toUpperCase()}</td>
+                            <td className="py-4 text-xs font-mono font-bold text-slate-400 uppercase tracking-tighter">{s.sku}</td>
                             <td className="py-4 text-xs font-bold text-slate-600">{s.origin}</td>
                             <td className="py-4">
                                 <StatusBadge status={s.status} />

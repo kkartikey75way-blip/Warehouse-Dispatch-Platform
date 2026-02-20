@@ -25,20 +25,22 @@ const DeliveryCard = ({
 }: DeliveryCardProps) => {
     const isDelivered = shipment.status === 'DELIVERED';
     const isInTransit = shipment.status === 'IN_TRANSIT';
-    const isDispatched = shipment.status === 'DISPATCHED';
+    const isInboundPending = shipment.type === 'INBOUND' && shipment.status === 'PENDING';
+    const isDispatched = shipment.status === 'DISPATCHED' || isInboundPending;
 
     const getStatusStyles = (status: string) => {
         switch (status) {
             case 'DELIVERED': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
             case 'IN_TRANSIT': return 'bg-blue-50 text-blue-600 border-blue-100';
-            case 'DISPATCHED': return 'bg-amber-50 text-amber-600 border-amber-100';
+            case 'DISPATCHED':
+            case 'PENDING': return 'bg-amber-50 text-amber-600 border-amber-100';
             default: return 'bg-slate-50 text-slate-500 border-slate-100';
         }
     };
 
     return (
         <Card className="group relative overflow-hidden p-0 border-none shadow-2xl shadow-slate-200/50 hover:shadow-3xl transition-all duration-500 glass">
-            {}
+            { }
             <div className={`absolute top-0 right-0 w-32 h-32 opacity-[0.03] rounded-full -mr-16 -mt-16 pointer-events-none transition-all duration-700 group-hover:scale-150 ${isDelivered ? 'bg-emerald-500' : 'bg-primary'}`} />
 
             <div className="flex flex-col lg:flex-row p-8 gap-8 items-center">

@@ -106,7 +106,7 @@ const LandingPage = () => {
                 </section>
 
                 <section className="max-w-7xl mx-auto px-6 py-24 border-t border-border-subtle/50 animate-fade-in-up opacity-0 delay-500 relative">
-                    {}
+                    { }
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] glow-pulse pointer-events-none" />
 
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 relative z-10">
@@ -138,7 +138,7 @@ const LandingPage = () => {
                                 <p className="text-txt-muted text-sm font-medium leading-relaxed">
                                     {feature.description}
                                 </p>
-                                {}
+                                { }
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                             </div>
                         ))}
@@ -161,7 +161,7 @@ const LandingPage = () => {
                                 Get Started Now
                             </button>
                         </div>
-                        {}
+                        { }
                         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-[120px] -mr-48 -mt-48 group-hover:bg-primary/20 transition-all duration-1000 glow-pulse" />
                         <div className="absolute bottom-0 right-0 p-12 opacity-10 group-hover:opacity-20 transition-all duration-1000 animate-float">
                             <Icons.Package className="w-64 h-64" />

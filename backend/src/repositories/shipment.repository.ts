@@ -73,7 +73,7 @@ export const updateShipmentStatus = async (
 export const getPendingOutboundShipments = async (): Promise<IShipment[]> => {
     const shipments = await Shipment.find({
         type: "OUTBOUND",
-        status: { $in: [ShipmentStatus.PACKED, ShipmentStatus.RECEIVED] },
+        status: { $in: [ShipmentStatus.PACKED, ShipmentStatus.RECEIVED, ShipmentStatus.PENDING] },
         assignedDriverId: { $exists: false }
     });
 

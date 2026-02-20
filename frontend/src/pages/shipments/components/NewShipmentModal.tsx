@@ -7,6 +7,7 @@ import Card from "../../../components/Card";
 import Button from "../../../components/Button";
 import Input from "../../../components/Input";
 import { Icons } from "../../../components/Icons";
+import { useGetWarehousesQuery } from "../../../services/warehouseApi";
 
 const shipmentSchema = z.object({
     trackingId: z.string().min(1, "Tracking ID is required"),
@@ -29,6 +30,7 @@ interface NewShipmentModalProps {
 
 const NewShipmentModal = ({ isOpen, onClose }: NewShipmentModalProps) => {
     const [createShipment, { isLoading }] = useCreateShipmentMutation();
+    const { data: warehouses } = useGetWarehousesQuery();
     const [isScanning, setIsScanning] = useState(false);
     const [type, setType] = useState<"INBOUND" | "OUTBOUND">("INBOUND");
 
@@ -122,12 +124,17 @@ const NewShipmentModal = ({ isOpen, onClose }: NewShipmentModalProps) => {
                                 )}
                             </div>
                         </div>
-                        <Input
-                            label="SKU"
-                            placeholder="SKU-XXXX"
-                            {...register("sku")}
-                            error={errors.sku?.message}
-                        />
+                        <div className="space-y-1">
+                            <Input
+                                label="SKU"
+                                placeholder="SKU-XXXX"
+                                {...register("sku")}
+                                error={errors.sku?.message}
+                            />
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter px-1">
+                                Note: SKUs must match for automatic backorder fulfillment
+                            </p>
+                        </div>
                         <Input
                             label="Quantity"
                             type="number"
@@ -152,17 +159,45 @@ const NewShipmentModal = ({ isOpen, onClose }: NewShipmentModalProps) => {
                             {...register("zone")}
                             error={errors.zone?.message}
                         />
-                        <Input
-                            label="Origin"
-                            {...register("origin")}
-                            error={errors.origin?.message}
-                        />
-                        <Input
-                            label="Destination"
-                            placeholder="City, State"
-                            {...register("destination")}
-                            error={errors.destination?.message}
-                        />
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Origin</label>
+                            {type === "OUTBOUND" ? (
+                                <select
+                                    {...register("origin")}
+                                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-100 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all"
+                                >
+                                    <option value="">Select Warehouse</option>
+                                    {warehouses?.map(w => (
+                                        <option key={w.code} value={w.code}>{w.name} ({w.code})</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <Input
+                                    {...register("origin")}
+                                    error={errors.origin?.message}
+                                />
+                            )}
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Destination</label>
+                            {type === "INBOUND" ? (
+                                <select
+                                    {...register("destination")}
+                                    className="w-full px-4 py-3 rounded-xl bg-white border border-slate-100 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all"
+                                >
+                                    <option value="">Select Warehouse</option>
+                                    {warehouses?.map(w => (
+                                        <option key={w.code} value={w.code}>{w.name} ({w.code})</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <Input
+                                    placeholder="City, State"
+                                    {...register("destination")}
+                                    error={errors.destination?.message}
+                                />
+                            )}
+                        </div>
                         <Input
                             label="Weight (kg)"
                             type="number"

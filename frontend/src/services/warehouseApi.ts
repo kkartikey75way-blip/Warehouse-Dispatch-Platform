@@ -7,12 +7,17 @@ export interface Warehouse {
     code: string;
     capacity: number;
     currentLoad: number;
-    location: {
-        latitude: number;
-        longitude: number;
-    };
+    location: string;
     status: 'online' | 'offline' | 'warning';
     lastHeartbeat?: string;
+}
+
+export interface InventoryItem {
+    _id: string;
+    sku: string;
+    onHand: number;
+    reserved: number;
+    updatedAt: string;
 }
 
 export const warehouseApi = baseApi.injectEndpoints({
@@ -38,6 +43,26 @@ export const warehouseApi = baseApi.injectEndpoints({
                 body
             }),
             invalidatesTags: ["Warehouse"]
+        }),
+        createWarehouse: builder.mutation<Warehouse, Partial<Warehouse>>({
+            query: (body) => ({
+                url: "/warehouses",
+                method: "POST",
+                body
+            }),
+            invalidatesTags: ["Warehouse"]
+        }),
+        deleteWarehouse: builder.mutation<void, string>({
+            query: (id) => ({
+                url: `/warehouses/${id}`,
+                method: "DELETE"
+            }),
+            invalidatesTags: ["Warehouse"]
+        }),
+        getWarehouseInventory: builder.query<InventoryItem[], string>({
+            query: (code) => `/warehouses/${code}/inventory`,
+            transformResponse: (response: { success: boolean; data: InventoryItem[] }) => response.data,
+            providesTags: ["Warehouse"]
         })
     })
 });
@@ -46,5 +71,8 @@ export const {
     useGetWarehousesQuery,
     useGetReturnRoutingQuery,
     useGetConflictsQuery,
-    useReconcileConflictMutation
+    useReconcileConflictMutation,
+    useCreateWarehouseMutation,
+    useDeleteWarehouseMutation,
+    useGetWarehouseInventoryQuery
 } = warehouseApi;

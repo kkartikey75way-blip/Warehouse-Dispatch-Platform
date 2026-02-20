@@ -5,7 +5,9 @@ import {
     heartbeatWarehouseService,
     markWarehouseOfflineService,
     reconcileSplitBrainConflictService,
-    detectSplitBrainConflictsService
+    detectSplitBrainConflictsService,
+    deleteWarehouseService,
+    getWarehouseInventoryService
 } from "../services/warehouse.service";
 import { AppError } from "../utils/appError";
 import { Warehouse } from "../models/warehouse.model";
@@ -91,4 +93,16 @@ export const reconcileConflictController = async (req: Request, res: Response): 
     );
 
     res.status(200).json({ success: true, data: result });
+};
+
+export const deleteWarehouseController = async (req: Request, res: Response): Promise<void> => {
+    const { id } = req.params as { id: string };
+    await deleteWarehouseService(id);
+    res.status(200).json({ success: true, message: "Warehouse deleted successfully" });
+};
+
+export const getWarehouseInventoryController = async (req: Request, res: Response): Promise<void> => {
+    const { code } = req.params as { code: string };
+    const inventory = await getWarehouseInventoryService(code);
+    res.status(200).json({ success: true, data: inventory });
 };

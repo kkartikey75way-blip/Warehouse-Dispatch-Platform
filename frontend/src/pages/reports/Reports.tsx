@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { useGetSchedulesQuery, useCreateScheduleMutation, useDeleteScheduleMutation, useRunReportNowMutation } from "../../services/schedulerApi";
+import { useGetSchedulesQuery, useCreateScheduleMutation, useDeleteScheduleMutation, useRunReportNowMutation, type Schedule } from "../../services/schedulerApi";
+import {
+    useExportDispatchManifestMutation,
+    useExportDeliveryReportMutation,
+    useExportDispatchManifestPDFMutation,
+    useExportDeliveryReportPDFMutation
+} from "../../services/exportApi";
 import { Icons } from "../../components/Icons";
 import Card from "../../components/Card";
 import toast from "react-hot-toast";
@@ -11,19 +17,24 @@ const ReportsPage = () => {
     const [createSchedule] = useCreateScheduleMutation();
     const [deleteSchedule] = useDeleteScheduleMutation();
     const [runNow] = useRunReportNowMutation();
+    const [exportDispatchCsv] = useExportDispatchManifestMutation();
+    const [exportDeliveryCsv] = useExportDeliveryReportMutation();
+    const [exportDispatchPdf] = useExportDispatchManifestPDFMutation();
+    const [exportDeliveryPdf] = useExportDeliveryReportPDFMutation();
 
     const [isAdding, setIsAdding] = useState(false);
     const [newSchedule, setNewSchedule] = useState({
         name: "",
-        type: "DISPATCH_MANIFEST" as "DISPATCH_MANIFEST" | "DELIVERY_REPORT",
+        type: "dispatch_manifest" as "dispatch_manifest" | "delivery_report",
         format: "CSV" as "CSV" | "PDF",
-        cron: "0 0 * * *",
-        recipients: [] as string[]
+        cronExpression: "0 0 * * *",
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        recipientEmails: [] as string[]
     });
 
     const handleFieldChange = (field: string, value: string) => {
-        if (field === "recipients") {
-            setNewSchedule(prev => ({ ...prev, recipients: value.split(",").map((r: string) => r.trim()).filter(Boolean) }));
+        if (field === "recipientEmails") {
+            setNewSchedule(prev => ({ ...prev, recipientEmails: value.split(",").map((r: string) => r.trim()).filter(Boolean) }));
         } else {
             setNewSchedule(prev => ({ ...prev, [field]: value }));
         }
@@ -35,9 +46,39 @@ const ReportsPage = () => {
             await createSchedule(newSchedule).unwrap();
             toast.success("Schedule created successfully");
             setIsAdding(false);
-            setNewSchedule({ name: "", type: "DISPATCH_MANIFEST", format: "CSV", cron: "0 0 * * *", recipients: [] });
+            setNewSchedule({ name: "", type: "dispatch_manifest", format: "CSV", cronExpression: "0 0 * * *", timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, recipientEmails: [] });
         } catch {
-            // Error handled globally by baseApi
+
+        }
+    };
+
+    const handleDownload = async (schedule: Schedule) => {
+        try {
+            const toastId = toast.loading(`Generating ${schedule.name}...`);
+            let blob: Blob;
+
+            if (schedule.type === "dispatch_manifest") {
+                blob = schedule.format === "PDF"
+                    ? await exportDispatchPdf().unwrap()
+                    : await exportDispatchCsv().unwrap();
+            } else {
+                blob = schedule.format === "PDF"
+                    ? await exportDeliveryPdf().unwrap()
+                    : await exportDeliveryCsv().unwrap();
+            }
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${schedule.type}-${new Date().toISOString().split("T")[0]}.${schedule.format.toLowerCase()}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            toast.success("Report downloaded", { id: toastId });
+        } catch {
+            toast.error("Failed to download report");
         }
     };
 
@@ -68,6 +109,7 @@ const ReportsPage = () => {
                         <ScheduleList
                             schedules={schedules || []}
                             onRunNow={runNow}
+                            onDownload={handleDownload}
                             onDelete={deleteSchedule}
                         />
                     </Card>

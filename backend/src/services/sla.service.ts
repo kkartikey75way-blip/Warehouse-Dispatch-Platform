@@ -32,7 +32,7 @@ setInterval(async () => {
     try {
         const count = await checkSlaEscalations();
         if (count > 0) {
-            console.log(`[SLA] Escalated ${count} shipments.`);
+            
         }
     } catch (err) {
         console.error("[SLA] Error checking escalations:", err);

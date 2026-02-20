@@ -1,27 +1,29 @@
 import { baseApi } from "./baseApi";
 
 export interface Schedule {
-    _id: string;
+    id: string;
     name: string;
-    type: 'DISPATCH_MANIFEST' | 'DELIVERY_REPORT';
+    type: 'dispatch_manifest' | 'delivery_report';
     format: 'CSV' | 'PDF';
-    cron: string;
-    recipients: string[];
-    lastRun?: string;
-    nextRun?: string;
-    active: boolean;
+    cronExpression: string;
+    timezone: string;
+    recipientEmails: string[];
+    createdAt?: string;
+    lastRunAt?: string;
+    nextRunAt?: string;
+    isActive: boolean;
 }
 
 export const schedulerApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
         getSchedules: builder.query<Schedule[], void>({
-            query: () => "/scheduler/schedules",
+            query: () => "/reports/schedules",
             transformResponse: (response: { success: boolean; data: Schedule[] }) => response.data,
             providesTags: ["Schedule"]
         }),
         createSchedule: builder.mutation<Schedule, Partial<Schedule>>({
             query: (body) => ({
-                url: "/scheduler/schedules",
+                url: "/reports/schedules",
                 method: "POST",
                 body
             }),
@@ -29,14 +31,14 @@ export const schedulerApi = baseApi.injectEndpoints({
         }),
         deleteSchedule: builder.mutation<void, string>({
             query: (id) => ({
-                url: `/scheduler/schedules/${id}`,
+                url: `/reports/schedules/${id}`,
                 method: "DELETE"
             }),
             invalidatesTags: ["Schedule"]
         }),
         runReportNow: builder.mutation<{ message: string }, string>({
             query: (id) => ({
-                url: `/scheduler/schedules/${id}/run`,
+                url: `/reports/schedules/${id}/run`,
                 method: "POST"
             }),
             invalidatesTags: ["Schedule"]

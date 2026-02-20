@@ -35,7 +35,7 @@ const WaterfallChart: React.FC<WaterfallChartProps> = ({ baseline, current, step
             </div>
 
             <div className="space-y-4 relative z-10">
-                {/* Baseline */}
+                {}
                 <div className="flex items-center gap-4">
                     <div className="w-32 text-[10px] font-black text-slate-400 uppercase truncate">Operational Baseline</div>
                     <div className="flex-1 h-8 bg-slate-50 rounded-lg relative overflow-hidden ring-1 ring-slate-100">
@@ -49,7 +49,7 @@ const WaterfallChart: React.FC<WaterfallChartProps> = ({ baseline, current, step
                     </div>
                 </div>
 
-                {/* Impact Steps */}
+                {}
                 {steps.reduce((acc, step, idx) => {
                     const prevTotal = idx === 0 ? baseline : acc[idx - 1].currentTotal;
                     const currentTotal = prevTotal + step.impact;
@@ -79,7 +79,7 @@ const WaterfallChart: React.FC<WaterfallChartProps> = ({ baseline, current, step
                                     </span>
                                 </div>
 
-                                {/* Tooltip */}
+                                {}
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-4 bg-slate-900 text-white rounded-2xl shadow-2xl opacity-0 invisible group-hover/step:opacity-100 group-hover/step:visible transition-all duration-200 z-50 pointer-events-none translate-y-2 group-hover/step:translate-y-0">
                                     <div className="flex justify-between items-start mb-2">
                                         <p className="text-[10px] font-black text-primary uppercase tracking-widest">{step.category}</p>
@@ -99,7 +99,7 @@ const WaterfallChart: React.FC<WaterfallChartProps> = ({ baseline, current, step
                     );
                 })}
 
-                {/* Current */}
+                {}
                 <div className="flex items-center gap-4 pt-4 border-t border-slate-50">
                     <div className="w-32 text-[10px] font-black text-slate-900 uppercase">Projected End-of-Day</div>
                     <div className="flex-1 h-12 bg-slate-900 rounded-xl relative overflow-hidden shadow-lg ring-4 ring-slate-50">

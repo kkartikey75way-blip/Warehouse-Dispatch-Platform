@@ -43,7 +43,7 @@ const saveAuthState = (state: AuthState) => {
         const serializedState = JSON.stringify(state);
         localStorage.setItem("authState", serializedState);
     } catch {
-        // Silently ignore storage errors
+        
     }
 };
 

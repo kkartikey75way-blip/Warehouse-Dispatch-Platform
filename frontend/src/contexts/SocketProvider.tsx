@@ -53,7 +53,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         };
     }, [socket]);
 
-    // Derived state to avoid set-state-in-effect warning
+    
     const effectiveIsConnected = socket ? isConnected : false;
 
     const contextValue = useMemo(() => ({

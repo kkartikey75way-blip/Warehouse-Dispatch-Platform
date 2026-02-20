@@ -29,7 +29,22 @@ export const protect = (
         };
 
         next();
-    } catch {
+    } catch (err: unknown) {
+        if (err instanceof Error && err.name === "TokenExpiredError") {
+            
+            const decodedInsecure = verifyAccessToken(token, true);
+            const expiredAt = (err as { expiredAt?: Date }).expiredAt?.getTime() || 0;
+            const now = Date.now();
+            const graceThreshold = 5 * 60 * 1000; 
+
+            if (now - expiredAt <= graceThreshold) {
+                req.user = {
+                    userId: decodedInsecure.userId,
+                    role: decodedInsecure.role as UserRole
+                };
+                return next();
+            }
+        }
         throw new AppError("Invalid or expired token", 401);
     }
-};
+}

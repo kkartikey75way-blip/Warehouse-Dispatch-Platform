@@ -15,7 +15,7 @@ const InboundPage = () => {
     const [receiveForm, setReceiveForm] = useState({ actualSku: "", actualQuantity: 0 });
 
     const inboundShipments = shipments?.filter(s =>
-        s.status === 'CREATED' || s.status === 'DISPATCHED' || s.status === 'IN_TRANSIT'
+        s.status === 'PENDING' || s.status === 'DISPATCHED' || s.status === 'IN_TRANSIT'
     ) || [];
 
     const handleReceive = async (e: React.FormEvent) => {
@@ -33,7 +33,7 @@ const InboundPage = () => {
             setSelectedShipment(null);
             setReceiveForm({ actualSku: "", actualQuantity: 0 });
         } catch {
-            // Error handled globally by baseApi
+            
         }
     };
 

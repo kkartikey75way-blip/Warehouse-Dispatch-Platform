@@ -12,11 +12,15 @@ export const getAllWarehousesService = async () => {
 
     return warehouses.map(wh => ({
         ...wh,
+        capacity: wh.totalCapacity,
+        currentLoad: wh.currentOccupancy,
+        status: wh.isOnline ? 'online' : 'offline',
         availableCapacity: wh.totalCapacity - wh.currentOccupancy,
         utilizationPercent: wh.totalCapacity > 0
             ? Math.round((wh.currentOccupancy / wh.totalCapacity) * 100)
             : 0,
-        isFull: wh.currentOccupancy >= wh.totalCapacity * CAPACITY_FULL_THRESHOLD
+        isFull: wh.currentOccupancy >= wh.totalCapacity * CAPACITY_FULL_THRESHOLD,
+        location: { latitude: 0, longitude: 0 }
     }));
 };
 
@@ -142,10 +146,13 @@ export const reconcileSplitBrainConflictService = async (
         message: `Order ${winnerShipment.trackingId} will ship. Order ${loserShipment.trackingId} is backordered due to stock conflict.`
     };
 };
+export interface InventoryConflict {
+    id: string;
+    type: string;
+    description: string;
+}
 
-export const detectSplitBrainConflictsService = async (): Promise<
-    Array<{ sku: string; warehouses: string[]; totalReserved: number; totalOnHand: number }>
-> => {
+export const detectSplitBrainConflictsService = async (): Promise<InventoryConflict[]> => {
     const pipeline = [
         {
             $group: {
@@ -165,9 +172,25 @@ export const detectSplitBrainConflictsService = async (): Promise<
     const conflicts = await Inventory.aggregate(pipeline);
 
     return conflicts.map(c => ({
-        sku: c._id,
-        warehouses: c.warehouses.filter(Boolean),
-        totalReserved: c.totalReserved,
-        totalOnHand: c.totalOnHand
+        id: c._id,
+        type: "INVENTORY_CONFLICT",
+        description: `Reserved stock (${c.totalReserved}) exceeds On-Hand (${c.totalOnHand}) for SKU ${c._id} across nodes: ${c.warehouses.filter(Boolean).join(", ")}`
     }));
+};
+
+export const deleteWarehouseService = async (id: string): Promise<void> => {
+    const warehouse = await Warehouse.findById(id);
+    if (!warehouse) throw new AppError("Warehouse not found", 404);
+
+    
+    const activeInventory = await Inventory.countDocuments({ warehouseCode: warehouse.code, onHand: { $gt: 0 } });
+    if (activeInventory > 0) {
+        throw new AppError("Cannot delete warehouse with active inventory", 400);
+    }
+
+    await warehouse.deleteOne();
+};
+
+export const getWarehouseInventoryService = async (warehouseCode: string) => {
+    return Inventory.find({ warehouseCode }).sort({ sku: 1 });
 };

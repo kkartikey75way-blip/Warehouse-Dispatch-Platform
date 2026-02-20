@@ -41,7 +41,7 @@ const BlindReceiveModal = ({ isOpen, onClose, shipment }: BlindReceiveModalProps
             }
             onClose();
         } catch {
-            // Error handled globally by baseApi
+            
         }
     };
 

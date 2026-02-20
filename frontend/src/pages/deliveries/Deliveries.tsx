@@ -32,7 +32,8 @@ const DeliveriesPage = () => {
     const myShipments = shipments?.filter(s => {
         if (user?.role === 'DRIVER') {
             const isAssignedToMe = String(s.assignedDriverId) === String(currentDriver?._id);
-            return (s.status === "DISPATCHED" || s.status === "IN_TRANSIT" || s.status === "DELIVERED") && isAssignedToMe;
+            const isInboundPending = s.type === 'INBOUND' && s.status === 'PENDING';
+            return (s.status === "DISPATCHED" || s.status === "IN_TRANSIT" || s.status === "DELIVERED" || isInboundPending) && isAssignedToMe;
         }
         return s.status === "DISPATCHED" || s.status === "IN_TRANSIT" || s.status === "DELIVERED";
     });
@@ -44,11 +45,9 @@ const DeliveriesPage = () => {
             return;
         }
         try {
-            console.log("[ACCEPT] Attempting to accept shipment:", { shipmentId, driverId: currentDriver._id });
-            const result = await acceptShipment({ shipmentId, driverId: currentDriver._id }).unwrap();
-            console.log("[ACCEPT] Shipment accepted successfully:", result);
+            await acceptShipment({ shipmentId, driverId: currentDriver._id }).unwrap();
         } catch {
-            // Error handled globally by baseApi
+            
         }
     };
 
@@ -74,7 +73,7 @@ const DeliveriesPage = () => {
             setActivePoD(null);
             toast.success("Delivery completed successfully");
         } catch {
-            // Error handled globally by baseApi
+            
         }
     };
 

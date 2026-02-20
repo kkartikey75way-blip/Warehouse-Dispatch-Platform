@@ -78,7 +78,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/tracking", trackingRoutes);
 app.use("/api/warehouses", protect, warehouseRoutes);
-app.use("/api/pod", protect, podRoutes);
+app.use("/api/pod", podRoutes);
 app.use("/api/reports", protect, schedulerRoutes);
 
 app.use(errorMiddleware);

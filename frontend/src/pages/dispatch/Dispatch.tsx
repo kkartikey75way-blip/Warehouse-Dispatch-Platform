@@ -21,7 +21,9 @@ const DispatchPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const pendingShipments = shipments?.filter(s =>
-        (s.status === 'PACKED' || s.status === 'RECEIVED') && !s.assignedDriverId
+        s.type === 'OUTBOUND' &&
+        (s.status === 'PACKED' || s.status === 'RECEIVED' || s.status === 'PENDING') &&
+        !s.assignedDriverId
     ) || [];
 
     const handleAutoAssign = async () => {
@@ -29,7 +31,7 @@ const DispatchPage = () => {
             const result = await autoAssign().unwrap();
             toast.success(result.message || "Auto-assignment completed successfully");
         } catch {
-            // Error handled globally
+
         }
     };
 
@@ -98,7 +100,7 @@ const DispatchPage = () => {
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Optimization Score</p>
                         <p className="text-3xl font-black text-slate-900 tracking-tighter">94<span className="text-primary text-sm">/100</span></p>
                         <div className="h-1 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
-                            <div className="h-full bg-primary" style={{ width: '94%' }} />
+                            <div className="h-full bg-primary" style={{ width: `94%` }} />
                         </div>
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-all" />
                     </div>
