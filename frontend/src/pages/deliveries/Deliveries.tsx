@@ -47,11 +47,8 @@ const DeliveriesPage = () => {
             console.log("[ACCEPT] Attempting to accept shipment:", { shipmentId, driverId: currentDriver._id });
             const result = await acceptShipment({ shipmentId, driverId: currentDriver._id }).unwrap();
             console.log("[ACCEPT] Shipment accepted successfully:", result);
-        } catch (err) {
-            console.error("[ACCEPT] Accept failed:", err);
-            const error = err as { data?: { message?: string }; message?: string };
-            const errorMessage = error?.data?.message || error?.message || "Failed to accept shipment";
-            toast.error(`Error: ${errorMessage}`);
+        } catch {
+            // Error handled globally by baseApi
         }
     };
 
@@ -76,9 +73,8 @@ const DeliveriesPage = () => {
             }).unwrap();
             setActivePoD(null);
             toast.success("Delivery completed successfully");
-        } catch (err) {
-            console.error("Completion failed", err);
-            toast.error("Failed to complete delivery");
+        } catch {
+            // Error handled globally by baseApi
         }
     };
 

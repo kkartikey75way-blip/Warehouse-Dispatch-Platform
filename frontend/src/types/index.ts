@@ -103,3 +103,16 @@ export interface Delivery {
     status: string;
     deliveredAt?: string;
 }
+
+export interface ShipmentEvent {
+    _id: string;
+    type: string;
+    timestamp: string;
+    metadata: Record<string, unknown>;
+}
+
+export interface Conflict {
+    id: string;
+    type: string;
+    description: string;
+}

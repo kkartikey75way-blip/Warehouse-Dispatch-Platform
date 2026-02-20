@@ -15,6 +15,9 @@ const allNavItems = [
     { label: "Analytics", path: "/analytics", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
     { label: "Shipments", path: "/shipments", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
     { label: "Dispatch", path: "/dispatch", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
+    { label: "Inbound", path: "/inbound", icon: <Icons.Package className="w-5 h-5" />, roles: ["admin", "warehouse_manager"] },
+    { label: "Reports", path: "/reports", icon: <Icons.Download className="w-5 h-5" />, roles: ["admin", "warehouse_manager"] },
+    { label: "Warehouses", path: "/warehouses", icon: <Icons.Globe className="w-5 h-5" />, roles: ["admin", "warehouse_manager"] },
     { label: "Deliveries", path: "/deliveries", icon: <Icons.Truck className="w-5 h-5" />, roles: ["driver", "admin", "warehouse_manager", "dispatcher"] },
     { label: "Drivers", path: "/drivers", icon: <Icons.Truck className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher"] },
     { label: "Alerts", path: "/notifications", icon: <Icons.Dashboard className="w-5 h-5" />, roles: ["admin", "warehouse_manager", "dispatcher", "driver"] },
@@ -42,7 +45,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
 
     return (
         <aside className={`${isCollapsed ? "w-24" : "w-72"} h-screen flex flex-col bg-surface border-r border-border-subtle fixed left-0 top-0 z-30 transition-all duration-300`}>
-            {}
+            { }
             <div className={`p-6 ${isCollapsed ? "px-0 flex flex-col items-center" : "px-8 flex items-center justify-between"} pb-10`}>
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 flex-shrink-0">
@@ -66,7 +69,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
                 </button>
             </div>
 
-            {}
+            { }
             <nav className={`flex-1 ${isCollapsed ? "px-0 flex flex-col items-center" : "px-4"} flex flex-col gap-1 overflow-y-auto custom-scrollbar`}>
                 {!isCollapsed && (
                     <p className="px-4 text-[10px] font-black tracking-[0.2em] text-txt-muted uppercase mb-3 opacity-50">Operation Console</p>
@@ -98,7 +101,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }: SidebarProps) => {
                 ))}
             </nav>
 
-            {}
+            { }
             <div className={`p-4 mt-auto ${isCollapsed ? "px-0 flex flex-col items-center" : ""}`}>
                 <div className={`premium-card ${isCollapsed ? "p-2 rounded-xl" : "p-5"} relative overflow-hidden group border-none bg-txt-main/5 transition-all duration-300`}>
                     <div className="relative z-10">

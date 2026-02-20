@@ -3,6 +3,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from "@reduxjs/toolk
 import type { RootState } from "../store/store";
 import { logout, setCredentials } from "../store/reducers/authReducer";
 import type { User } from "../store/reducers/authReducer";
+import toast from "react-hot-toast";
 
 const baseQuery = fetchBaseQuery({
     baseUrl: "/api",
@@ -47,11 +48,15 @@ const baseQueryWithReauth: BaseQueryFn<
     }
 
     if (result.error && result.error.status !== 401) {
-        const { toast } = await import("react-hot-toast");
-        interface ApiError {
-            message?: string;
+        let errorMessage = "An unexpected error occurred";
+
+        if ("data" in result.error && result.error.data && typeof result.error.data === "object") {
+            const errorData = result.error.data as { message?: string; error?: string };
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } else if ("error" in result.error && result.error.error) {
+            errorMessage = result.error.error;
         }
-        const errorMessage = (result.error.data as ApiError)?.message || "An unexpected error occurred";
+
         toast.error(errorMessage);
     }
 
@@ -62,7 +67,7 @@ export const baseApi = createApi({
     reducerPath: "api",
     baseQuery: baseQueryWithReauth,
     endpoints: () => ({}),
-    tagTypes: ["Shipment", "Driver", "Dispatch", "Notification", "Analytics"],
+    tagTypes: ["Shipment", "Driver", "Dispatch", "Notification", "Analytics", "Schedule", "Warehouse"],
     keepUnusedDataFor: 0,
     refetchOnMountOrArgChange: true,
     refetchOnFocus: true,

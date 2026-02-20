@@ -31,7 +31,6 @@ const NewShipmentModal = ({ isOpen, onClose }: NewShipmentModalProps) => {
     const [createShipment, { isLoading }] = useCreateShipmentMutation();
     const [isScanning, setIsScanning] = useState(false);
     const [type, setType] = useState<"INBOUND" | "OUTBOUND">("INBOUND");
-    const [apiError, setApiError] = useState<string | null>(null);
 
     const { register, handleSubmit, setValue, formState: { errors } } = useForm<ShipmentFormData>({
         resolver: zodResolver(shipmentSchema),
@@ -60,18 +59,15 @@ const NewShipmentModal = ({ isOpen, onClose }: NewShipmentModalProps) => {
     };
 
     const onSubmit = async (data: ShipmentFormData) => {
-        setApiError(null);
-
         try {
             await createShipment({
                 ...data,
                 type
             }).unwrap();
+            import("react-hot-toast").then((m) => m.default.success("Shipment created successfully"));
             onClose();
         } catch (err: unknown) {
             console.error("Failed to create shipment:", err);
-            const errorMessage = (err as { data?: { message?: string } })?.data?.message || "Failed to create shipment. Please check your permissions and input.";
-            setApiError(errorMessage);
         }
     };
 
@@ -86,13 +82,6 @@ const NewShipmentModal = ({ isOpen, onClose }: NewShipmentModalProps) => {
                         <Icons.X />
                     </button>
                 </div>
-
-                {apiError && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-bold flex items-center gap-2 animate-in slide-in-from-top-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
-                        {apiError}
-                    </div>
-                )}
 
                 <div className="flex p-1 bg-slate-100 rounded-xl mb-8">
                     <button

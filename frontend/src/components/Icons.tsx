@@ -19,7 +19,11 @@ import {
     Sun,
     LayoutDashboard,
     Info,
-    BellOff
+    BellOff,
+    ArrowUp,
+    ArrowDown,
+    Globe,
+    RefreshCcw
 } from 'lucide-react';
 
 export const Icons = {
@@ -42,5 +46,9 @@ export const Icons = {
     Sun: (props: React.ComponentProps<typeof Sun>) => <Sun size={24} {...props} />,
     Dashboard: (props: React.ComponentProps<typeof LayoutDashboard>) => <LayoutDashboard size={24} {...props} />,
     Info: (props: React.ComponentProps<typeof Info>) => <Info size={24} {...props} />,
-    BellOff: (props: React.ComponentProps<typeof BellOff>) => <BellOff size={24} {...props} />
+    BellOff: (props: React.ComponentProps<typeof BellOff>) => <BellOff size={24} {...props} />,
+    ArrowUp: (props: React.ComponentProps<typeof ArrowUp>) => <ArrowUp size={18} {...props} />,
+    ArrowDown: (props: React.ComponentProps<typeof ArrowDown>) => <ArrowDown size={18} {...props} />,
+    Globe: (props: React.ComponentProps<typeof Globe>) => <Globe size={18} {...props} />,
+    SwitchCamera: (props: React.ComponentProps<typeof RefreshCcw>) => <RefreshCcw size={18} {...props} />
 };

@@ -136,7 +136,7 @@ const AnalyticsPage = () => {
                                                 </span>
                                             </div>
                                             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                                                Automated Event • ID {Math.random().toString(36).substr(2, 6).toUpperCase()}
+                                                Automated Event • ID {((idx + 1) * 123456).toString(36).toUpperCase().substring(0, 6)}
                                             </p>
                                         </div>
                                     </div>

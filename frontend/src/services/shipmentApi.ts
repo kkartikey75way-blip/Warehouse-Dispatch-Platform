@@ -1,5 +1,5 @@
 import { baseApi } from "./baseApi";
-import type { Shipment } from "../types";
+import type { Shipment, ShipmentEvent } from "../types";
 
 export const shipmentApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
@@ -57,6 +57,11 @@ export const shipmentApi = baseApi.injectEndpoints({
             }),
             transformResponse: (response: { success: boolean; data: Shipment }) => response.data,
             invalidatesTags: ["Shipment", "Analytics"]
+        }),
+        replayEvents: builder.query<ShipmentEvent[], string>({
+            query: (id) => `/tracking/${id}/replay`,
+            transformResponse: (response: { success: boolean; data: ShipmentEvent[] }) => response.data,
+            providesTags: (_result, _error, id) => [{ type: "Shipment", id }]
         })
     })
 });
@@ -68,5 +73,6 @@ export const {
     useUpdateShipmentStatusMutation,
     useAcceptShipmentMutation,
     useSplitShipmentMutation,
-    useBlindReceiveMutation
+    useBlindReceiveMutation,
+    useReplayEventsQuery
 } = shipmentApi;

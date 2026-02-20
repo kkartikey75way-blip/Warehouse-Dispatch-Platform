@@ -28,7 +28,7 @@ const loadAuthState = (): AuthState => {
             };
         }
         return JSON.parse(serializedState);
-    } catch (err) {
+    } catch {
         return {
             user: null,
             accessToken: null,
@@ -42,8 +42,8 @@ const saveAuthState = (state: AuthState) => {
     try {
         const serializedState = JSON.stringify(state);
         localStorage.setItem("authState", serializedState);
-    } catch (err) {
-
+    } catch {
+        // Silently ignore storage errors
     }
 };
 

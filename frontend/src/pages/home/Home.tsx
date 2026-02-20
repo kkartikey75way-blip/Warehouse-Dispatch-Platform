@@ -1,4 +1,5 @@
 import { useGetKpiDashboardQuery } from "../../services/analyticsApi";
+import { useGetShipmentsQuery } from "../../services/shipmentApi";
 import { useAppSelector } from "../../store/hooks";
 import { Link } from "react-router-dom";
 import Card from "../../components/Card";
@@ -7,9 +8,15 @@ import DriverHome from "./DriverHome";
 
 const HomePage = () => {
     const { user } = useAppSelector((state) => state.auth);
-    const { data: dashboardData, isLoading } = useGetKpiDashboardQuery(undefined, {
+    const { data: dashboardData, isLoading: isLoadingKpi } = useGetKpiDashboardQuery(undefined, {
         skip: user?.role === 'DRIVER'
     });
+
+    const { data: shipments, isLoading: isLoadingShipments } = useGetShipmentsQuery(undefined, {
+        skip: user?.role === 'DRIVER'
+    });
+
+    const isLoading = isLoadingKpi || isLoadingShipments;
 
     if (user?.role === 'DRIVER') {
         return <DriverHome user={user} />;
@@ -63,14 +70,14 @@ const HomePage = () => {
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-12 pb-24">
-            {}
+            { }
             <div className="relative overflow-hidden rounded-[3.5rem] bg-slate-950 p-12 md:p-16 text-white group shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)]">
-                {}
+                { }
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,oklch(0.6_0.18_250/_0.15),transparent_50%)]" />
                 <div className="absolute -right-20 -top-20 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[140px] opacity-40 group-hover:opacity-60 transition-all duration-1000" />
                 <div className="absolute left-1/4 -bottom-40 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px]" />
 
-                {}
+                { }
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
@@ -113,7 +120,7 @@ const HomePage = () => {
                 </div>
             </div>
 
-            {}
+            { }
             <section className="space-y-12">
                 <div className="flex items-end justify-between px-6">
                     <div>
@@ -164,7 +171,7 @@ const HomePage = () => {
                 </div>
             </section>
 
-            {}
+            { }
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 p-2">
                 <Card className="lg:col-span-2 p-10 border-none shadow-[0_30px_70px_-20px_rgba(0,0,0,0.1)] glass relative overflow-hidden group">
                     <div className="flex items-center justify-between mb-12 relative z-10">
@@ -247,6 +254,65 @@ const HomePage = () => {
                     </Link>
                 </Card>
             </div>
+
+            { }
+            <section className="space-y-8 animate-in slide-in-from-bottom-8 duration-700">
+                <div className="flex items-center justify-between px-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                            <span className="text-[10px] font-black text-red-500 uppercase tracking-[0.3em]">Critical Oversight</span>
+                        </div>
+                        <h2 className="text-3xl font-black text-txt-main tracking-tight">SLA Priority Queue</h2>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {shipments?.filter(s => s.priority === 'EXPRESS' && s.status !== 'DELIVERED').slice(0, 3).map((shipment) => {
+                        const isOverdue = shipment.estimatedDeliveryTime && new Date(shipment.estimatedDeliveryTime) < new Date();
+                        return (
+                            <Card key={shipment._id} className={`p-8 border-none shadow-xl relative overflow-hidden group ${isOverdue ? 'bg-red-50 ring-1 ring-red-100' : 'bg-white'}`}>
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${isOverdue ? 'bg-red-500 text-white animate-bounce' : 'bg-amber-100 text-amber-600'}`}>
+                                        {isOverdue ? 'SLA BREACH' : 'AT RISK'}
+                                    </div>
+                                    <span className="text-[10px] font-mono font-bold text-slate-400">ID: {shipment._id.slice(-6).toUpperCase()}</span>
+                                </div>
+                                <h4 className="text-lg font-black text-slate-900 mb-2 truncate">{shipment.trackingId}</h4>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between text-xs font-bold text-slate-500">
+                                        <span>Expected By</span>
+                                        <span className={isOverdue ? 'text-red-600 font-black underline' : 'text-slate-900'}>
+                                            {shipment.estimatedDeliveryTime ? new Date(shipment.estimatedDeliveryTime).toLocaleTimeString() : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className="h-px bg-slate-100" />
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black">
+                                            {shipment.sku[0]}
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">SKU</p>
+                                            <p className="text-xs font-bold text-slate-700">{shipment.sku}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {isOverdue && (
+                                    <div className="mt-6 p-3 bg-red-500/10 rounded-xl border border-red-200">
+                                        <p className="text-[10px] font-black text-red-600 uppercase tracking-widest leading-tight">Requires Immediate Action: Route Re-optimization Pending</p>
+                                    </div>
+                                )}
+                            </Card>
+                        );
+                    })}
+                    {(!shipments?.some(s => s.priority === 'EXPRESS' && s.status !== 'DELIVERED')) && (
+                        <div className="lg:col-span-3 py-20 text-center border-2 border-dashed border-slate-100 rounded-[2.5rem]">
+                            <Icons.CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4 opacity-20" />
+                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">SLA Performance within guardrails</p>
+                        </div>
+                    )}
+                </div>
+            </section>
         </div>
     );
 };

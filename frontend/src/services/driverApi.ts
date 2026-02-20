@@ -13,6 +13,9 @@ export interface Driver {
     isAvailable: boolean;
     shiftStart: string;
     shiftEnd: string;
+    cumulativeDrivingTime: number;
+    continuousDrivingTime: number;
+    onBreak?: boolean;
 }
 
 export const driverApi = baseApi.injectEndpoints({
@@ -45,6 +48,22 @@ export const driverApi = baseApi.injectEndpoints({
             transformResponse: (response: { success: boolean; data: Driver }) => response.data,
             invalidatesTags: ["Driver"]
         }),
+        startBreak: builder.mutation<Driver, void>({
+            query: () => ({
+                url: "/drivers/break/start",
+                method: "POST"
+            }),
+            transformResponse: (response: { success: boolean; data: Driver }) => response.data,
+            invalidatesTags: ["Driver"]
+        }),
+        endBreak: builder.mutation<Driver, void>({
+            query: () => ({
+                url: "/drivers/break/end",
+                method: "POST"
+            }),
+            transformResponse: (response: { success: boolean; data: Driver }) => response.data,
+            invalidatesTags: ["Driver"]
+        }),
         deleteDriver: builder.mutation<{ success: boolean; message: string }, string>({
             query: (id) => ({
                 url: `/drivers/${id}`,
@@ -60,5 +79,7 @@ export const {
     useGetDriverProfileQuery,
     useUpdateDriverAvailabilityMutation,
     useUpdateDriverMutation,
-    useDeleteDriverMutation
+    useDeleteDriverMutation,
+    useStartBreakMutation,
+    useEndBreakMutation
 } = driverApi;

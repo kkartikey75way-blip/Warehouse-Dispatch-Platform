@@ -1,8 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import MainLayout from "../layouts/MainLayout";
 import AuthLayout from "../layouts/AuthLayout";
 import ProtectedRoute from "../router/ProtectedRoute";
+import { SuspenseWrapper } from "../components/SuspenseWrapper";
 
 const LandingPage = lazy(() => import("../pages/LandingPage"));
 const LoginPage = lazy(() => import("../pages/auth/Login"));
@@ -16,21 +17,9 @@ const DispatchPage = lazy(() => import("../pages/dispatch/Dispatch"));
 const DriversPage = lazy(() => import("../pages/drivers/Drivers"));
 const DeliveriesPage = lazy(() => import("../pages/deliveries/Deliveries"));
 const NotificationsPage = lazy(() => import("../pages/notifications/Notifications"));
-
-const PageLoader = () => (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-600 font-medium">Loading...</p>
-        </div>
-    </div>
-);
-
-const SuspenseWrapper = ({ children }: { children: React.ReactNode }) => (
-    <Suspense fallback={<PageLoader />}>
-        {children}
-    </Suspense>
-);
+const InboundPage = lazy(() => import("../pages/inbound/Inbound"));
+const ReportsPage = lazy(() => import("../pages/reports/Reports"));
+const WarehousesPage = lazy(() => import("../pages/warehouses/Warehouses"));
 
 export const router = createBrowserRouter([
     {
@@ -84,6 +73,18 @@ export const router = createBrowserRouter([
             {
                 path: "/notifications",
                 element: <SuspenseWrapper><NotificationsPage /></SuspenseWrapper>
+            },
+            {
+                path: "/inbound",
+                element: <SuspenseWrapper><InboundPage /></SuspenseWrapper>
+            },
+            {
+                path: "/reports",
+                element: <SuspenseWrapper><ReportsPage /></SuspenseWrapper>
+            },
+            {
+                path: "/warehouses",
+                element: <SuspenseWrapper><WarehousesPage /></SuspenseWrapper>
             }
         ]
     }

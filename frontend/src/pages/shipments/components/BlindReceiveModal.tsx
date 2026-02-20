@@ -40,8 +40,8 @@ const BlindReceiveModal = ({ isOpen, onClose, shipment }: BlindReceiveModalProps
                 toast.success("Shipment received successfully");
             }
             onClose();
-        } catch (err) {
-            console.error("Failed to receive shipment:", err);
+        } catch {
+            // Error handled globally by baseApi
         }
     };
 

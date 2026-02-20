@@ -4,6 +4,8 @@ import { useGetDriverProfileQuery } from "../services/driverApi";
 import { useState, useEffect } from "react";
 import { Icons } from "./Icons";
 
+const TOPBAR_RANDOM_ID = Math.floor(Math.random() * 9000) + 1000;
+
 const TopBar = () => {
     const { user } = useSelector((state: RootState) => state.auth);
     const isDriver = user?.role === "DRIVER";
@@ -92,7 +94,7 @@ const TopBar = () => {
                     <div className="text-right hidden sm:block">
                         <p className="text-sm font-black text-txt-main leading-none group-hover:text-primary transition-colors">{user?.email?.split('@')[0]}</p>
                         <p className="text-[9px] font-black text-txt-muted uppercase tracking-[0.2em] mt-1.5 opacity-60">
-                            ID: {user?.role?.substring(0, 3)}-{Math.floor(Math.random() * 9000) + 1000}
+                            ID: {user?.role?.substring(0, 3)}-{TOPBAR_RANDOM_ID}
                         </p>
                     </div>
                     <div className="relative">

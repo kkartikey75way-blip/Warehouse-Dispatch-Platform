@@ -30,12 +30,12 @@ export interface TrackingData {
 
 
 export enum SocketEvents {
-    
+
     SUBSCRIBE_SHIPMENT = 'subscribe:shipment',
     UNSUBSCRIBE_SHIPMENT = 'unsubscribe:shipment',
     DRIVER_LOCATION_UPDATE = 'driver:location',
 
-    
+
     SHIPMENT_LOCATION_UPDATE = 'shipment:location',
     SHIPMENT_STATUS_UPDATE = 'shipment:status',
     CONNECTION_ERROR = 'connection:error',

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useSocket } from '../constants/SocketContext';
+import { useSocket } from '../contexts/useSocket';
 import type { LocationPoint, StatusHistoryEntry } from '../types';
 
 interface LocationUpdatePayload {
@@ -20,15 +20,15 @@ export const useShipmentTracking = (shipmentId: string | null) => {
     const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState<string | null>(null);
     const [latestStatus, setLatestStatus] = useState<StatusHistoryEntry | null>(null);
 
-    
+
     useEffect(() => {
         if (!socket || !isConnected || !shipmentId) return;
 
-        
+
         socket.emit('subscribe:shipment', shipmentId);
         console.log(`Subscribed to shipment: ${shipmentId}`);
 
-        
+
         const handleLocationUpdate = (data: LocationUpdatePayload) => {
             if (data.shipmentId === shipmentId) {
                 setCurrentLocation(data.location);
@@ -38,7 +38,7 @@ export const useShipmentTracking = (shipmentId: string | null) => {
             }
         };
 
-        
+
         const handleStatusUpdate = (data: StatusUpdatePayload) => {
             if (data.shipmentId === shipmentId) {
                 setLatestStatus({
@@ -51,7 +51,7 @@ export const useShipmentTracking = (shipmentId: string | null) => {
         socket.on('shipment:location', handleLocationUpdate);
         socket.on('shipment:status', handleStatusUpdate);
 
-        
+
         return () => {
             socket.emit('unsubscribe:shipment', shipmentId);
             socket.off('shipment:location', handleLocationUpdate);

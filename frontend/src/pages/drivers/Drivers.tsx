@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetDriversQuery, useUpdateDriverAvailabilityMutation, useDeleteDriverMutation } from "../../services/driverApi";
+import { useGetDriversQuery, useUpdateDriverAvailabilityMutation, useDeleteDriverMutation, useStartBreakMutation, useEndBreakMutation } from "../../services/driverApi";
 import type { Driver } from "../../services/driverApi";
 import { useAppSelector } from "../../store/hooks";
 import Card from "../../components/Card";
@@ -10,6 +10,8 @@ const DriversPage = () => {
     const { user } = useAppSelector((state) => state.auth);
     const { data: drivers, isLoading, error } = useGetDriversQuery();
     const [updateAvailability] = useUpdateDriverAvailabilityMutation();
+    const [startBreak] = useStartBreakMutation();
+    const [endBreak] = useEndBreakMutation();
     const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -44,6 +46,18 @@ const DriversPage = () => {
     const handleEdit = (driver: Driver) => {
         setSelectedDriver(driver);
         setIsModalOpen(true);
+    };
+
+    const handleBreakAction = async (driver: Driver) => {
+        try {
+            if (driver.onBreak) {
+                await endBreak().unwrap();
+            } else {
+                await startBreak().unwrap();
+            }
+        } catch (err) {
+            console.error("Failed to toggle break", err);
+        }
     };
 
     return (
@@ -86,8 +100,8 @@ const DriversPage = () => {
 
                     return (
                         <Card key={driver._id} className="group relative overflow-hidden p-0 border-none shadow-2xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 glass">
-                            {}
-                            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-20 transition-all duration-700 group-hover:scale-150 ${driver.isAvailable ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                            { }
+                            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full blur-3xl opacity-20 transition-all duration-700 group-hover:scale-150 ${driver.onBreak ? 'bg-orange-500' : (driver.isAvailable ? 'bg-emerald-500' : 'bg-red-500')}`} />
 
                             <div className="p-8 space-y-8 relative z-10">
                                 <div className="flex justify-between items-start">
@@ -114,6 +128,17 @@ const DriversPage = () => {
                                         >
                                             {driver.isAvailable ? 'Available' : 'Busy'}
                                         </button>
+                                        {driver.userId?._id === user?.id && (
+                                            <button
+                                                onClick={() => handleBreakAction(driver)}
+                                                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${driver.onBreak
+                                                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-200'
+                                                    : 'bg-orange-50 text-orange-600 ring-1 ring-orange-100 hover:bg-orange-500 hover:text-white'
+                                                    }`}
+                                            >
+                                                {driver.onBreak ? 'End Break' : 'Start Break'}
+                                            </button>
+                                        )}
                                         {(user?.role === 'ADMIN' || user?.role === 'WAREHOUSE_MANAGER') && (
                                             <div className="flex gap-2">
                                                 <button
@@ -155,6 +180,21 @@ const DriversPage = () => {
                                             style={{ width: `${loadPercentage}%` }}
                                         >
                                             {isNearCapacity && <div className="absolute inset-0 bg-white/20 animate-pulse" />}
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 mt-4">
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Daily Drive</p>
+                                            <p className={`text-xs font-black ${driver.cumulativeDrivingTime > 9 ? 'text-red-500' : 'text-slate-700'}`}>
+                                                {driver.cumulativeDrivingTime.toFixed(1)} / 10h
+                                            </p>
+                                        </div>
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Continuous</p>
+                                            <p className={`text-xs font-black ${driver.continuousDrivingTime > 4.5 ? 'text-orange-500' : 'text-slate-700'}`}>
+                                                {driver.continuousDrivingTime.toFixed(1)} / 5h
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

@@ -9,7 +9,7 @@ const VerifyEmail = () => {
     const navigate = useNavigate();
     const token = searchParams.get("token");
     const [verifyEmail, { isLoading, isSuccess }] = useVerifyEmailMutation();
-    const [message, setMessage] = useState("Verifying your email...");
+    const [message, setMessage] = useState(token ? "Verifying your email..." : "No verification token found.");
 
     useEffect(() => {
         if (token) {
@@ -24,8 +24,6 @@ const VerifyEmail = () => {
                 .catch((err) => {
                     setMessage(err.data?.message || "Verification failed. The link may be invalid or expired.");
                 });
-        } else {
-            setMessage("No verification token found.");
         }
     }, [token, verifyEmail, navigate]);
 

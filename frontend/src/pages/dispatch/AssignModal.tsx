@@ -26,14 +26,13 @@ const AssignModal = ({ isOpen, onClose, selectedCount, onConfirm, isLoading, tar
     const { data: drivers } = useGetDriversQuery();
     const [showAllZones, setShowAllZones] = useState(false);
 
-    const { register, handleSubmit, formState: { errors }, watch } = useForm<AssignFormData>({
+    const { register, handleSubmit, formState: { errors, isValid } } = useForm<AssignFormData>({
         resolver: zodResolver(assignSchema),
+        mode: "onChange",
         defaultValues: {
             driverId: ""
         }
     });
-
-    const selectedDriver = watch("driverId");
 
     const onSubmit = (data: AssignFormData) => {
         onConfirm(data.driverId);
@@ -95,7 +94,7 @@ const AssignModal = ({ isOpen, onClose, selectedCount, onConfirm, isLoading, tar
                         <Button type="button" onClick={onClose} variant="secondary" className="flex-1">Cancel</Button>
                         <Button
                             type="submit"
-                            disabled={!selectedDriver || isLoading}
+                            disabled={!isValid || isLoading}
                             isLoading={isLoading}
                             className="flex-1 shadow-xl shadow-primary/20"
                         >

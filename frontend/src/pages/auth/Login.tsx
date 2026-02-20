@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,10 +20,8 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const navType = useNavigationType();
     const [login, { isLoading }] = useLoginMutation();
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        
         if (navType === "POP") {
             navigate("/", { replace: true });
         }
@@ -39,7 +37,6 @@ const LoginPage = () => {
 
     const onSubmit = async (data: LoginFormValues) => {
         try {
-            setError(null);
             const result = await login(data).unwrap();
 
             dispatch(setCredentials({
@@ -50,7 +47,6 @@ const LoginPage = () => {
             localStorage.setItem("refreshToken", result.refreshToken);
             navigate("/dashboard");
         } catch (err: unknown) {
-            setError("Invalid credentials or server error. Please try again.");
             console.error("Login failed:", err);
         }
     };
@@ -66,13 +62,6 @@ const LoginPage = () => {
 
             <div className="p-10 rounded-[2.5rem] bg-white border border-border-subtle shadow-2xl shadow-slate-200/50">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-                    {error && (
-                        <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-top-2 flex items-center gap-3">
-                            <Icons.AlertCircle className="w-5 h-5 flex-shrink-0" />
-                            <span>{error}</span>
-                        </div>
-                    )}
-
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-txt-muted uppercase tracking-[0.2em] ml-1">
                             Control Identity

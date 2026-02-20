@@ -1,0 +1,41 @@
+
+> frontend@0.0.0 lint
+> eslint .
+
+
+/Users/75way-mac-78/Desktop/MERN/Full-Stack/Warehouse-Assessment/frontend/src/components/TopBar.tsx
+  95:75  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Users/75way-mac-78/Desktop/MERN/Full-Stack/Warehouse-Assessment/frontend/src/components/TopBar.tsx:95:75
+  93 |                         <p className="text-sm font-black text-txt-main leading-none group-hover:text-primary transition-colors">{user?.email?.split('@')[0]}</p>
+  94 |                         <p className="text-[9px] font-black text-txt-muted uppercase tracking-[0.2em] mt-1.5 opacity-60">
+> 95 |                             ID: {user?.role?.substring(0, 3)}-{Math.floor(Math.random() * 9000) + 1000}
+     |                                                                           ^^^^^^^^^^^^^ Cannot call impure function
+  96 |                         </p>
+  97 |                     </div>
+  98 |                     <div className="relative">  react-hooks/purity
+
+/Users/75way-mac-78/Desktop/MERN/Full-Stack/Warehouse-Assessment/frontend/src/constants/SocketContext.tsx
+  16:14  error    Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             react-refresh/only-export-components
+  38:17  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/75way-mac-78/Desktop/MERN/Full-Stack/Warehouse-Assessment/frontend/src/constants/SocketContext.tsx:38:17
+  36 |             if (socket) {
+  37 |                 socket.disconnect();
+> 38 |                 setSocket(null);
+     |                 ^^^^^^^^^ Avoid calling setState() directly within an effect
+  39 |                 setIsConnected(false);
+  40 |             }
+  41 |             return;  react-hooks/set-state-in-effect
+  76:8   warning  React Hook useEffect has a missing dependency: 'socket'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+
+✖ 4 problems (3 errors, 1 warning)
+
